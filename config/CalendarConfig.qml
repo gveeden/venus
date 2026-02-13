@@ -1,0 +1,10 @@
+pragma Singleton
+
+import QtQuick
+
+QtObject {
+    readonly property int windowWidth: 320
+    readonly property int windowHeight: 340
+    readonly property int topMargin: 10
+    readonly property int rightMargin: 10
+}

@@ -1,0 +1,15 @@
+module my-desktop
+
+singleton Appearance config/Appearance.qml
+singleton BarConfig config/BarConfig.qml
+singleton LauncherConfig config/LauncherConfig.qml
+singleton BluetoothConfig config/BluetoothConfig.qml
+singleton NotificationConfig config/NotificationConfig.qml
+singleton SettingsConfig config/SettingsConfig.qml
+
+singleton Time services/Time.qml
+singleton Bluetooth services/Bluetooth.qml
+singleton Notifs services/Notifs.qml
+
+ThemeStorage services/ThemeStorage.qml
+ClockWidget components/widgets/ClockWidget.qml

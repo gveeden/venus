@@ -1,0 +1,7 @@
+module services
+
+singleton Time Time.qml
+singleton Bluetooth Bluetooth.qml
+singleton Notifs Notifs.qml
+singleton Networks Networks.qml
+ThemeStorage ThemeStorage.qml
