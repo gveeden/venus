@@ -17,3 +17,4 @@ singleton Notifs services/Notifs.qml
 
 ThemeStorage services/ThemeStorage.qml
 ClockWidget components/widgets/ClockWidget.qml
+Button components/controls/Button.qml

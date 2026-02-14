@@ -6,7 +6,7 @@ QtObject {
     property string currentTheme: "catppuccin"
 
     function saveSettings() {
-        // Will be called from ThemeTab when settings change
+    // Will be called from ThemeTab when settings change
     }
 
     property QtObject colors: QtObject {
@@ -23,6 +23,13 @@ QtObject {
         property color border: "#313244"
         property color hover: "#45475a"
         property color windowBorder: "#313244"
+        property color buttonBorder: "#45475a"
+        property color buttonBackground: "#89b4fa"
+        property color buttonText: "#1e1e2e"
+    }
+
+    readonly property QtObject button: QtObject {
+        property int borderThickness: 1
     }
 
     readonly property QtObject spacing: QtObject {
@@ -79,6 +86,11 @@ QtObject {
             colors.border = "#313244";
             colors.hover = "#45475a";
             colors.windowBorder = "#313244";
+            colors.buttonBorder = "#45475a";
+            colors.buttonBackground = colors.primary;
+            colors.buttonText = colors.background;
+            colors.buttonBackground = "#89b4fa";
+            colors.buttonText = "#1e1e2e";
             window.borderThickness = 1;
             window.radius = 8;
             break;
@@ -96,6 +108,9 @@ QtObject {
             colors.border = "#3c3836";
             colors.hover = "#504945";
             colors.windowBorder = "#3c3836";
+            colors.buttonBorder = "#504945";
+            colors.buttonBackground = colors.primary;
+            colors.buttonText = colors.background;
             window.borderThickness = 1;
             window.radius = 8;
             break;
@@ -113,6 +128,9 @@ QtObject {
             colors.border = "#3b4252";
             colors.hover = "#434c5e";
             colors.windowBorder = "#3b4252";
+            colors.buttonBorder = "#434c5e";
+            colors.buttonBackground = colors.primary;
+            colors.buttonText = colors.background;
             window.borderThickness = 1;
             window.radius = 8;
             break;
@@ -130,6 +148,9 @@ QtObject {
             colors.border = "#44475a";
             colors.hover = "#6272a4";
             colors.windowBorder = "#44475a";
+            colors.buttonBorder = "#6272a4";
+            colors.buttonBackground = colors.primary;
+            colors.buttonText = colors.background;
             window.borderThickness = 1;
             window.radius = 8;
             break;
@@ -147,6 +168,9 @@ QtObject {
             colors.border = "#3e4451";
             colors.hover = "#4b5263";
             colors.windowBorder = "#3e4451";
+            colors.buttonBorder = "#4b5263";
+            colors.buttonBackground = colors.primary;
+            colors.buttonText = colors.background;
             window.borderThickness = 1;
             window.radius = 8;
             break;

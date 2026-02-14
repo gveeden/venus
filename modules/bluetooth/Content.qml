@@ -1,5 +1,6 @@
 import "../../config"
 import "../../services"
+import "../../components/controls"
 import "components"
 import QtQuick
 import QtQuick.Layouts
@@ -47,45 +48,26 @@ ColumnLayout {
         }
 
         // Power toggle
-        Rectangle {
+        Button {
             Layout.preferredWidth: 50
             Layout.preferredHeight: 25
-            color: Bluetooth.enabled ? Appearance.colors.primaryContainer : Appearance.colors.secondary
-            radius: Appearance.rounding.small
-
-            Text {
-                anchors.centerIn: parent
-                text: Bluetooth.enabled ? "ON" : "OFF"
-                color: Appearance.colors.background
-                font.pixelSize: Appearance.font.small
-                font.bold: true
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: Bluetooth.toggle()
-            }
+            text: Bluetooth.enabled ? "ON" : "OFF"
+            fontSize: Appearance.font.small
+            bold: true
+            padding: 0
+            onClicked: Bluetooth.toggle()
         }
 
         // Scan toggle
-        Rectangle {
+        Button {
             Layout.preferredWidth: 60
             Layout.preferredHeight: 25
-            color: Bluetooth.scanning ? Appearance.colors.primary : Appearance.colors.surfaceHighlight
-            radius: Appearance.rounding.small
+            text: Bluetooth.scanning ? "Stop" : "Scan"
+            variant: "outline"
+            fontSize: Appearance.font.regular
+            padding: 0
             opacity: Bluetooth.enabled ? 1.0 : 0.5
-
-            Text {
-                anchors.centerIn: parent
-                text: Bluetooth.scanning ? "Stop" : "Scan"
-                color: Appearance.colors.text
-                font.pixelSize: Appearance.font.regular
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: Bluetooth.toggleScanning()
-            }
+            onClicked: Bluetooth.toggleScanning()
         }
     }
 

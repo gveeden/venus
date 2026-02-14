@@ -6,8 +6,6 @@ import "../config"
 Item {
     id: root
 
-    property string settingsPath: Quickshell.appConfigDir + "/theme.json"
-
     function save() {
         console.log("ThemeStorage: Saving theme...");
 
@@ -26,25 +24,26 @@ Item {
                 secondaryContainer: Appearance.colors.secondaryContainer.toString(),
                 border: Appearance.colors.border.toString(),
                 hover: Appearance.colors.hover.toString(),
-                windowBorder: Appearance.colors.windowBorder.toString()
+                windowBorder: Appearance.colors.windowBorder.toString(),
+                buttonBorder: Appearance.colors.buttonBorder.toString(),
+                buttonBackground: Appearance.colors.buttonBackground.toString(),
+                buttonText: Appearance.colors.buttonText.toString()
             },
             window: {
                 borderThickness: Appearance.window.borderThickness,
                 radius: Appearance.window.radius
+            },
+            button: {
+                borderThickness: Appearance.button.borderThickness
             }
         };
 
         fileView.setText(JSON.stringify(data, null, 2));
     }
 
-    function load() {
-        // FileView loads automatically
-        console.log("ThemeStorage: FileView will load from:", settingsPath);
-    }
-
     FileView {
         id: fileView
-        path: settingsPath
+        path: Quickshell.configDir + "/theme.json"
 
         onLoaded: {
             console.log("ThemeStorage: File loaded, attempting to parse...");
@@ -86,7 +85,29 @@ Item {
                         Appearance.colors.hover = data.colors.hover;
                     if (data.colors.windowBorder)
                         Appearance.colors.windowBorder = data.colors.windowBorder;
+                    if (data.colors.buttonBorder)
+                        Appearance.colors.buttonBorder = data.colors.buttonBorder;
+                    if (data.colors.buttonBackground)
+                        Appearance.colors.buttonBackground = data.colors.buttonBackground;
+                    if (data.colors.buttonText)
+                        Appearance.colors.buttonText = data.colors.buttonText;
                     console.log("ThemeStorage: Colors applied");
+                }
+
+                // Apply window settings
+                if (data.window) {
+                    if (data.window.borderThickness !== undefined)
+                        Appearance.window.borderThickness = data.window.borderThickness;
+                    if (data.window.radius !== undefined)
+                        Appearance.window.radius = data.window.radius;
+                    console.log("ThemeStorage: Window settings applied");
+                }
+
+                // Apply button settings
+                if (data.button) {
+                    if (data.button.borderThickness !== undefined)
+                        Appearance.button.borderThickness = data.button.borderThickness;
+                    console.log("ThemeStorage: Button settings applied");
                 }
 
                 // Apply window settings

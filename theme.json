@@ -1,0 +1,28 @@
+{
+  "currentTheme": "onedark",
+  "colors": {
+    "background": "#282c34",
+    "surface": "#1e222a",
+    "surfaceHighlight": "#3e4451",
+    "text": "#abb2bf",
+    "textSecondary": "#828997",
+    "textTertiary": "#5c6370",
+    "primary": "#61afef",
+    "primaryContainer": "#98c379",
+    "secondary": "#e06c75",
+    "secondaryContainer": "#e5c07b",
+    "border": "#3e4451",
+    "hover": "#4b5263",
+    "windowBorder": "#3e4451",
+    "buttonBorder": "#4b5263",
+    "buttonBackground": "#61afef",
+    "buttonText": "#282c34"
+  },
+  "window": {
+    "borderThickness": 1,
+    "radius": 8
+  },
+  "button": {
+    "borderThickness": 1
+  }
+}

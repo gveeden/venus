@@ -1,5 +1,6 @@
 import "../../config"
 import "../../services"
+import "../../components/controls"
 import "components"
 import QtQuick
 import QtQuick.Layouts
@@ -21,46 +22,27 @@ ColumnLayout {
         }
 
         // Power toggle
-        Rectangle {
+        Button {
             Layout.preferredWidth: 50
             Layout.preferredHeight: 25
-            color: Networks.enabled ? Appearance.colors.primaryContainer : Appearance.colors.secondary
-            radius: Appearance.rounding.small
-
-            Text {
-                anchors.centerIn: parent
-                text: Networks.enabled ? "ON" : "OFF"
-                color: Appearance.colors.background
-                font.pixelSize: Appearance.font.small
-                font.bold: true
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: Networks.toggle()
-            }
+            text: Networks.enabled ? "ON" : "OFF"
+            fontSize: Appearance.font.small
+            bold: true
+            padding: 0
+            onClicked: Networks.toggle()
         }
 
         // Scan toggle
-        Rectangle {
+        Button {
             Layout.preferredWidth: 60
             Layout.preferredHeight: 25
-            color: Networks.scanning ? Appearance.colors.primary : Appearance.colors.surfaceHighlight
-            radius: Appearance.rounding.small
+            text: Networks.scanning ? "Stop" : "Scan"
+            variant: "outline"
+            fontSize: Appearance.font.tiny
+            padding: 0
             opacity: Networks.enabled ? 1.0 : 0.5
-
-            Text {
-                anchors.centerIn: parent
-                text: Networks.scanning ? "Scanning..." : "Scan"
-                color: Appearance.colors.text
-                font.pixelSize: Appearance.font.tiny
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                enabled: Networks.enabled
-                onClicked: Networks.toggleScanning()
-            }
+            enabled: Networks.enabled
+            onClicked: Networks.toggleScanning()
         }
     }
 
@@ -87,7 +69,7 @@ ColumnLayout {
             title: "Available Networks"
             emptyMessage: "No networks found\nClick Scan to discover"
             networkFilter: network => {
-                return network && network.ssid && network.ssid.length > 0 && !network.active
+                return network && network.ssid && network.ssid.length > 0 && !network.active;
             }
         }
     }

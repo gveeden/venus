@@ -1,5 +1,6 @@
 import "../../../config"
 import "../../../services"
+import "../../../components/controls"
 import Quickshell.Bluetooth
 import QtQuick
 import QtQuick.Layouts
@@ -80,123 +81,58 @@ Rectangle {
                 Layout.alignment: Qt.AlignRight
 
                 // Connect/Disconnect button
-                Rectangle {
+                Button {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 22
-                    color: root.connected 
-                        ? Appearance.colors.secondary 
-                        : Appearance.colors.primaryContainer
-                    radius: Appearance.rounding.small
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: root.loading ? "Loading..." : (root.connected ? "Disconnect" : "Connect")
-                        color: Appearance.colors.background
-                        font.pixelSize: Appearance.font.small
-                        font.bold: true
-                        visible: !root.loading
-                    }
-
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "transparent"
-                        visible: root.loading
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 16
-                            height: 16
-                            radius: 8
-                            color: Appearance.colors.background
-
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: 12
-                                height: 12
-                                radius: 6
-                                color: Appearance.colors.secondary
-
-                                RotationAnimation on rotation {
-                                    from: 0
-                                    to: 360
-                                    duration: 1000
-                                    loops: Animation.Infinite
-                                }
-                            }
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        enabled: !root.loading
-                        onClicked: {
-                            if (root.device) {
-                                if (root.connected) {
-                                    root.device.connected = false
-                                } else if (root.device.paired) {
-                                    root.device.connected = true
-                                } else {
-                                    root.device.pair()
-                                }
+                    text: root.connected ? "Disconnect" : "Connect"
+                    fontSize: Appearance.font.small
+                    bold: true
+                    padding: 0
+                    loading: root.loading
+                    variant: root.connected ? "outline" : "solid"
+                    onClicked: {
+                        if (root.device) {
+                            if (root.connected) {
+                                root.device.connected = false
+                            } else if (root.device.paired) {
+                                root.device.connected = true
+                            } else {
+                                root.device.pair()
                             }
                         }
                     }
                 }
 
                 // Pair/Forget button
-                Rectangle {
+                Button {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 22
-                    color: (root.device && root.device.paired) 
-                        ? Appearance.colors.surfaceHighlight 
-                        : Appearance.colors.primary
-                    radius: Appearance.rounding.small
+                    text: (root.device && root.device.paired) ? "Forget" : "Pair"
+                    variant: (root.device && root.device.paired) ? "ghost" : "solid"
+                    fontSize: Appearance.font.small
+                    padding: 0
                     visible: root.device && !root.connected
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: (root.device && root.device.paired) ? "Forget" : "Pair"
-                        color: Appearance.colors.text
-                        font.pixelSize: Appearance.font.small
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            if (root.device) {
-                                if (root.device.paired) {
-                                    root.device.forget()
-                                } else {
-                                    root.device.pair()
-                                }
+                    onClicked: {
+                        if (root.device) {
+                            if (root.device.paired) {
+                                root.device.forget()
+                            } else {
+                                root.device.pair()
                             }
                         }
                     }
                 }
 
                 // Block button (only for unpaired devices)
-                Rectangle {
+                Button {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 22
-                    color: root.device && root.device.blocked 
-                        ? Appearance.colors.secondary 
-                        : Appearance.colors.surfaceHighlight
-                    radius: Appearance.rounding.small
+                    text: "Block"
+                    variant: "ghost"
+                    fontSize: Appearance.font.small
+                    padding: 0
                     visible: root.device && !root.device.paired
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "Block"
-                        color: root.device && root.device.blocked 
-                            ? Appearance.colors.textTertiary 
-                            : Appearance.colors.text
-                        font.pixelSize: Appearance.font.small
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: Bluetooth.toggleDeviceBlock(root.device)
-                    }
+                    onClicked: Bluetooth.toggleDeviceBlock(root.device)
                 }
             }
         }

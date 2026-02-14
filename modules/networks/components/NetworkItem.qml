@@ -1,5 +1,6 @@
 import "../../../config"
 import "../../../services"
+import "../../../components/controls"
 import QtQuick
 import QtQuick.Layouts
 
@@ -157,89 +158,38 @@ Rectangle {
             spacing: Appearance.spacing.small
 
             // Connect/Disconnect button
-            Rectangle {
+            Button {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                color: root.connected 
-                    ? Appearance.colors.secondary 
-                    : Appearance.colors.primaryContainer
-                radius: Appearance.rounding.small
-
-                Text {
-                    anchors.centerIn: parent
-                    text: root.loading ? "Loading..." : (root.connected ? "Disconnect" : "Connect")
-                    color: Appearance.colors.background
-                    font.pixelSize: Appearance.font.small
-                    font.bold: true
-                    visible: !root.loading
-                }
-
-                // Loading spinner
-                Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                    visible: root.loading
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 16
-                        height: 16
-                        radius: 8
-                        color: Appearance.colors.background
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 12
-                            height: 12
-                            radius: 6
-                            color: Appearance.colors.primaryContainer
-
-                            RotationAnimation on rotation {
-                                from: 0
-                                to: 360
-                                duration: 1000
-                                loops: Animation.Infinite
-                            }
-                        }
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    enabled: !root.loading
-                    onClicked: {
-                        if (root.network) {
-                            if (root.connected) {
-                                Networks.disconnectFromNetwork()
-                            } else {
-                                Networks.connectToNetwork(root.network, "")
-                            }
+                text: root.connected ? "Disconnect" : "Connect"
+                fontSize: Appearance.font.small
+                bold: true
+                padding: 0
+                loading: root.loading
+                variant: root.connected ? "outline" : "solid"
+                onClicked: {
+                    if (root.network) {
+                        if (root.connected) {
+                            Networks.disconnectFromNetwork()
+                        } else {
+                            Networks.connectToNetwork(root.network, "")
                         }
                     }
                 }
             }
 
             // Forget button (only for saved networks)
-            Rectangle {
+            Button {
                 visible: root.saved && !root.connected
                 Layout.preferredWidth: 70
                 Layout.fillHeight: true
-                color: Appearance.colors.surfaceHighlight
-                radius: Appearance.rounding.small
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "Forget"
-                    color: Appearance.colors.text
-                    font.pixelSize: Appearance.font.small
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        if (root.network) {
-                            Networks.forgetNetwork(root.network.ssid)
-                        }
+                text: "Forget"
+                variant: "ghost"
+                fontSize: Appearance.font.small
+                padding: 0
+                onClicked: {
+                    if (root.network) {
+                        Networks.forgetNetwork(root.network.ssid)
                     }
                 }
             }
