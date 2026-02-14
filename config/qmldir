@@ -1,0 +1,11 @@
+module config
+
+singleton Appearance Appearance.qml
+singleton BarConfig BarConfig.qml
+singleton LauncherConfig LauncherConfig.qml
+singleton BluetoothConfig BluetoothConfig.qml
+singleton NetworksConfig NetworksConfig.qml
+singleton BatteryConfig BatteryConfig.qml
+singleton CalendarConfig CalendarConfig.qml
+singleton NotificationConfig NotificationConfig.qml
+singleton SettingsConfig SettingsConfig.qml

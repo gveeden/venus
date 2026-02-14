@@ -31,9 +31,12 @@ ColumnLayout {
             clip: true
             spacing: Appearance.spacing.small
 
-            model: [...Networks.networks]
-                .filter(root.networkFilter)
-                .sort((a, b) => {
+            model: {
+                const allNets = [...Networks.networks]
+                console.log("NetworkList: Total networks:", allNets.length, "Title:", root.title)
+                const filtered = allNets.filter(root.networkFilter)
+                console.log("NetworkList: Filtered networks:", filtered.length, "for", root.title)
+                return filtered.sort((a, b) => {
                     // First sort by active status
                     if (a.active !== b.active) {
                         return b.active - a.active
@@ -47,6 +50,7 @@ ColumnLayout {
                     // Finally by signal strength
                     return b.strength - a.strength
                 })
+            }
 
             delegate: Loader {
                 id: loader

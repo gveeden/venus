@@ -3,6 +3,7 @@ import "../../services"
 import Quickshell
 import Quickshell.Widgets
 import QtQuick
+import "." as NotificationsPrivate
 
 Scope {
     PanelWindow {
@@ -25,7 +26,7 @@ Scope {
         visible: Notifs.currentNotification != null
         color: "transparent"
 
-        Content {
+        NotificationsPrivate.Content {
             anchors.fill: parent
             notification: Notifs.currentNotification
         }

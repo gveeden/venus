@@ -1,6 +1,7 @@
 import "../../config"
 import Quickshell
 import QtQuick
+import "." as LauncherPrivate
 
 Window {
     id: launcher
@@ -25,7 +26,7 @@ Window {
         border.color: Appearance.colors.border
         border.width: 1
 
-        Content {
+        LauncherPrivate.Content {
             id: content
             anchors.fill: parent
             anchors.margins: Appearance.padding.xlarge

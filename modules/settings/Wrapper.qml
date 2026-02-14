@@ -1,6 +1,7 @@
 import "../../config"
 import Quickshell
 import QtQuick
+import "." as SettingsPrivate
 
 Scope {
     id: root
@@ -53,7 +54,7 @@ Scope {
             radius: Appearance.window.radius
         }
 
-        Content {
+        SettingsPrivate.Content {
             id: content
             anchors.fill: parent
             anchors.leftMargin: Appearance.window.borderThickness

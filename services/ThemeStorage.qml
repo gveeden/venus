@@ -9,6 +9,8 @@ Item {
     property string settingsPath: Quickshell.appConfigDir + "/theme.json"
 
     function save() {
+        console.log("ThemeStorage: Saving theme...");
+
         var data = {
             currentTheme: Appearance.currentTheme,
             colors: {
@@ -30,78 +32,94 @@ Item {
                 borderThickness: Appearance.window.borderThickness,
                 radius: Appearance.window.radius
             }
-        }
+        };
 
-        var jsonStr = JSON.stringify(data, null, 2)
-        saveProc.command = ["sh", "-c", "mkdir -p \"$(dirname '" + settingsPath + "')\" && echo '" + jsonStr.replace(/'/g, "'\\''") + "' > '" + settingsPath + "'"]
-        saveProc.running = true
+        fileView.setText(JSON.stringify(data, null, 2));
     }
 
     function load() {
-        loadProc.running = true
+        // FileView loads automatically
+        console.log("ThemeStorage: FileView will load from:", settingsPath);
     }
 
-    Process {
-        id: saveProc
-        running: false
-    }
+    FileView {
+        id: fileView
+        path: settingsPath
 
-    Process {
-        id: loadProc
-        command: ["cat", settingsPath]
-        running: false
-
-        property string content: ""
-
-        stdout.onRead: function(data) {
-            content += data
-        }
-
-        onExited: function(exitCode) {
-            console.log("ThemeStorage: Load process exited with code:", exitCode, "content length:", content.length)
-            if (exitCode !== 0 || !content) {
-                console.log("ThemeStorage: No saved settings found, using defaults")
-                return
-            }
+        onLoaded: {
+            console.log("ThemeStorage: File loaded, attempting to parse...");
 
             try {
-                var data = JSON.parse(content)
-                console.log("ThemeStorage: Loaded settings, theme:", data.currentTheme)
-                
+                var data = JSON.parse(text());
+
+                // Validate and apply theme
                 if (data.currentTheme) {
-                    Appearance.currentTheme = data.currentTheme
+                    Appearance.currentTheme = data.currentTheme;
+                    console.log("ThemeStorage: Loaded theme:", data.currentTheme);
                 }
 
+                // Apply colors
                 if (data.colors) {
-                    if (data.colors.background) Appearance.colors.background = data.colors.background
-                    if (data.colors.surface) Appearance.colors.surface = data.colors.surface
-                    if (data.colors.surfaceHighlight) Appearance.colors.surfaceHighlight = data.colors.surfaceHighlight
-                    if (data.colors.text) Appearance.colors.text = data.colors.text
-                    if (data.colors.textSecondary) Appearance.colors.textSecondary = data.colors.textSecondary
-                    if (data.colors.textTertiary) Appearance.colors.textTertiary = data.colors.textTertiary
-                    if (data.colors.primary) Appearance.colors.primary = data.colors.primary
-                    if (data.colors.primaryContainer) Appearance.colors.primaryContainer = data.colors.primaryContainer
-                    if (data.colors.secondary) Appearance.colors.secondary = data.colors.secondary
-                    if (data.colors.secondaryContainer) Appearance.colors.secondaryContainer = data.colors.secondaryContainer
-                    if (data.colors.border) Appearance.colors.border = data.colors.border
-                    if (data.colors.hover) Appearance.colors.hover = data.colors.hover
-                    if (data.colors.windowBorder) Appearance.colors.windowBorder = data.colors.windowBorder
+                    if (data.colors.background)
+                        Appearance.colors.background = data.colors.background;
+                    if (data.colors.surface)
+                        Appearance.colors.surface = data.colors.surface;
+                    if (data.colors.surfaceHighlight)
+                        Appearance.colors.surfaceHighlight = data.colors.surfaceHighlight;
+                    if (data.colors.text)
+                        Appearance.colors.text = data.colors.text;
+                    if (data.colors.textSecondary)
+                        Appearance.colors.textSecondary = data.colors.textSecondary;
+                    if (data.colors.textTertiary)
+                        Appearance.colors.textTertiary = data.colors.textTertiary;
+                    if (data.colors.primary)
+                        Appearance.colors.primary = data.colors.primary;
+                    if (data.colors.primaryContainer)
+                        Appearance.colors.primaryContainer = data.colors.primaryContainer;
+                    if (data.colors.secondary)
+                        Appearance.colors.secondary = data.colors.secondary;
+                    if (data.colors.secondaryContainer)
+                        Appearance.colors.secondaryContainer = data.colors.secondaryContainer;
+                    if (data.colors.border)
+                        Appearance.colors.border = data.colors.border;
+                    if (data.colors.hover)
+                        Appearance.colors.hover = data.colors.hover;
+                    if (data.colors.windowBorder)
+                        Appearance.colors.windowBorder = data.colors.windowBorder;
+                    console.log("ThemeStorage: Colors applied");
                 }
 
+                // Apply window settings
                 if (data.window) {
-                    if (data.window.borderThickness !== undefined) Appearance.window.borderThickness = data.window.borderThickness
-                    if (data.window.radius !== undefined) Appearance.window.radius = data.window.radius
+                    if (data.window.borderThickness !== undefined)
+                        Appearance.window.borderThickness = data.window.borderThickness;
+                    if (data.window.radius !== undefined)
+                        Appearance.window.radius = data.window.radius;
+                    console.log("ThemeStorage: Window settings applied");
                 }
 
-                content = ""  // Reset for next load
+                console.log("ThemeStorage: Theme loaded successfully!");
             } catch (e) {
-                console.error("Failed to parse theme settings:", e)
+                console.error("ThemeStorage: Failed to parse or apply theme:", e);
+                console.log("ThemeStorage: Using default theme");
             }
+        }
+
+        onLoadFailed: err => {
+            if (err === FileViewError.FileNotFound) {
+                console.log("ThemeStorage: No saved theme found, creating default...");
+                save();
+            } else {
+                console.error("ThemeStorage: Failed to load theme:", FileViewError.toString(err));
+            }
+        }
+
+        onSaveFailed: err => {
+            console.error("ThemeStorage: Failed to save theme:", FileViewError.toString(err));
         }
     }
 
     Component.onCompleted: {
-        console.log("ThemeStorage: Component completed, loading settings from:", settingsPath)
-        load()
+        console.log("ThemeStorage: Initialized");
     }
 }

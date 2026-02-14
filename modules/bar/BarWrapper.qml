@@ -1,6 +1,7 @@
 import "../../config"
 import Quickshell
 import QtQuick
+import "." as BarPrivate
 
 Scope {
     id: root
@@ -15,6 +16,7 @@ Scope {
         PanelWindow {
             required property var modelData
             screen: modelData
+            visible: true
 
             anchors {
                 top: true
@@ -25,7 +27,7 @@ Scope {
             implicitHeight: BarConfig.height
             color: Appearance.colors.background
 
-            Bar {
+            BarPrivate.Bar {
                 bluetoothModule: root.bluetoothModule
                 networksModule: root.networksModule
                 batteryModule: root.batteryModule

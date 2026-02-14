@@ -2,6 +2,7 @@ import "../../config"
 import Quickshell
 import Quickshell.Hyprland
 import QtQuick
+import "." as CalendarPrivate
 
 Scope {
     id: root
@@ -49,7 +50,7 @@ Scope {
             radius: Appearance.window.radius
         }
 
-        Content {
+        CalendarPrivate.Content {
             anchors.fill: parent
             anchors.margins: Appearance.window.borderThickness + 16
         }

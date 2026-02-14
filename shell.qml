@@ -14,7 +14,7 @@ import "./services"
 ShellRoot {
     id: root
 
-    // Theme storage - loads settings on startup
+    // Theme storage - using FileView for persistence
     ThemeStorage {
         id: themeStorage
     }

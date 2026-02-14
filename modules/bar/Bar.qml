@@ -11,19 +11,24 @@ RowLayout {
     required property var batteryModule
     required property var calendarModule
 
-    anchors.right: parent.right
+    anchors.fill: parent
+    anchors.leftMargin: BarConfig.margins
     anchors.rightMargin: BarConfig.margins
-    anchors.verticalCenter: parent.verticalCenter
-    // spacing: BarConfig.spacing
+    spacing: BarConfig.spacing
+
+    // Spacer to push widgets to the right
+    Item {
+        Layout.fillWidth: true
+    }
 
     // Network status indicator
     Rectangle {
-        width: children[0].width + BarConfig.margins
-        height: children[0].height + BarConfig.margins
-        anchors.verticalCenter: parent.verticalCenter
+        Layout.preferredWidth: networkIcon.implicitWidth + BarConfig.margins
+        Layout.preferredHeight: BarConfig.height
         color: "transparent"
+        
         Text {
-
+            id: networkIcon
             property int signalStrength: networksModule.activeNetwork?.strength ?? 0
             property string signalIcon: {
                 if (!networksModule.networksEnabled)
@@ -41,9 +46,9 @@ RowLayout {
             color: networksModule.networksEnabled && networksModule.activeNetwork ? Appearance.colors.primary : Appearance.colors.textTertiary
             font.family: Appearance.font.family
             font.pixelSize: BarConfig.fontSize
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.centerIn: parent
         }
+        
         MouseArea {
             anchors.fill: parent
             onClicked: networksModule.visible = !networksModule.visible
@@ -52,18 +57,19 @@ RowLayout {
 
     // Bluetooth status indicator
     Rectangle {
-        width: children[0].width + BarConfig.margins
-        height: children[0].height + BarConfig.margins
-        anchors.verticalCenter: parent.verticalCenter
+        Layout.preferredWidth: bluetoothIcon.implicitWidth + BarConfig.margins
+        Layout.preferredHeight: BarConfig.height
         color: "transparent"
+        
         Text {
+            id: bluetoothIcon
             text: "󰂯"
             color: bluetoothModule.bluetoothEnabled ? Appearance.colors.primary : Appearance.colors.textTertiary
             font.family: Appearance.font.family
             font.pixelSize: BarConfig.fontSize
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.centerIn: parent
         }
+        
         MouseArea {
             anchors.fill: parent
             onClicked: bluetoothModule.visible = !bluetoothModule.visible
@@ -72,11 +78,12 @@ RowLayout {
 
     // Battery indicator
     Rectangle {
-        width: children[0].width + BarConfig.margins
-        height: children[0].height + BarConfig.margins
-        anchors.verticalCenter: parent.verticalCenter
+        Layout.preferredWidth: batteryText.implicitWidth + BarConfig.margins
+        Layout.preferredHeight: BarConfig.height
         color: "transparent"
+        
         Text {
+            id: batteryText
             property int batteryPercent: UPower.displayDevice ? Math.round(UPower.displayDevice.percentage * 100) : 0
             property string batteryIcon: {
                 if (!UPower.displayDevice)
@@ -108,9 +115,9 @@ RowLayout {
             }
             font.family: Appearance.font.family
             font.pixelSize: BarConfig.fontSize
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.centerIn: parent
         }
+        
         MouseArea {
             anchors.fill: parent
             onClicked: batteryModule.visible = !batteryModule.visible
@@ -119,16 +126,17 @@ RowLayout {
 
     // Clock
     Rectangle {
-        width: children[0].width + BarConfig.margins
-        height: children[0].height + BarConfig.margins
-        anchors.verticalCenter: parent.verticalCenter
+        Layout.preferredWidth: clockWidget.implicitWidth + BarConfig.margins
+        Layout.preferredHeight: BarConfig.height
         color: "transparent"
+        
         ClockWidget {
+            id: clockWidget
             fontSize: BarConfig.fontSize
             timeText: Time.fullStr
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.centerIn: parent
         }
+        
         MouseArea {
             anchors.fill: parent
             onClicked: calendarModule.visible = !calendarModule.visible

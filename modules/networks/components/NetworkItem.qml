@@ -85,7 +85,9 @@ Rectangle {
             // Security icon
             Text {
                 visible: root.isSecure
-                text: "🔒"
+                text: ""
+                color: Appearance.colors.textSecondary
+                font.family: Appearance.font.family
                 font.pixelSize: Appearance.font.small
             }
         }

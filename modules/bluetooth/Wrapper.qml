@@ -3,6 +3,7 @@ import "../../services"
 import Quickshell
 import Quickshell.Hyprland
 import QtQuick
+import "." as BluetoothPrivate
 
 Scope {
     id: root
@@ -56,7 +57,7 @@ Scope {
             radius: Appearance.window.radius
         }
 
-        Content {
+        BluetoothPrivate.Content {
             anchors.fill: parent
             anchors.margins: Appearance.window.borderThickness + 10
         }

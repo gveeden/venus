@@ -3,6 +3,7 @@ import "../../services"
 import Quickshell
 import Quickshell.Hyprland
 import QtQuick
+import "." as BatteryPrivate
 
 Scope {
     id: root
@@ -50,7 +51,7 @@ Scope {
             radius: Appearance.window.radius
         }
 
-        Content {
+        BatteryPrivate.Content {
             anchors.fill: parent
             anchors.margins: Appearance.window.borderThickness + 10
         }

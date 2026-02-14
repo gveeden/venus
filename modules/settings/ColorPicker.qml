@@ -80,6 +80,7 @@ RowLayout {
         MouseArea {
             anchors.fill: parent
             onClicked: {
+                console.log("ColorPicker: Resetting", root.label, "to default")
                 switch (root.label) {
                 case "Background": root.colorChanged("#1e1e2e"); break
                 case "Surface": root.colorChanged("#181825"); break
@@ -468,6 +469,7 @@ RowLayout {
                         anchors.fill: parent
                         onClicked: {
                             var newColor = Qt.rgba(root.rValue / 255, root.gValue / 255, root.bValue / 255, 1)
+                            console.log("ColorPicker: Applying color for", root.label, "->", newColor)
                             root.colorChanged(newColor)
                             colorPickerPopup.close()
                         }
