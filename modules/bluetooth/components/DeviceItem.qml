@@ -9,17 +9,12 @@ Rectangle {
     id: root
     property var device
 
-    readonly property bool loading: device && (
-        device.state === BluetoothDeviceState.Connecting 
-        || device.state === BluetoothDeviceState.Disconnecting
-    )
+    readonly property bool loading: device && (device.state === BluetoothDeviceState.Connecting || device.state === BluetoothDeviceState.Disconnecting)
     readonly property bool connected: device && device.state === BluetoothDeviceState.Connected
 
     width: parent ? parent.width : 0
     height: 100
-    color: connected 
-        ? Appearance.colors.surfaceHighlight 
-        : Appearance.colors.background
+    color: connected ? Appearance.colors.surfaceHighlight : Appearance.colors.background
     radius: Appearance.rounding.small
 
     ColumnLayout {
@@ -45,8 +40,7 @@ Rectangle {
                 }
 
                 Text {
-                    text: (root.device ? root.device.address : "") 
-                        + (root.connected ? " (Connected)" : (root.device && root.device.paired) ? " (Paired)" : "")
+                    text: (root.device ? root.device.address : "") + (root.connected ? " (Connected)" : (root.device && root.device.paired) ? " (Paired)" : "")
                     color: Appearance.colors.textTertiary
                     font.pixelSize: Appearance.font.tiny
                 }
@@ -54,20 +48,14 @@ Rectangle {
                 Text {
                     visible: root.device && root.device.batteryAvailable
                     text: "Battery: " + Math.round(root.device.battery * 100) + "%"
-                    color: root.device && root.device.battery < 0.2 
-                        ? Appearance.colors.secondary 
-                        : Appearance.colors.primaryContainer
+                    color: root.device && root.device.battery < 0.2 ? Appearance.colors.secondary : Appearance.colors.primaryContainer
                     font.pixelSize: Appearance.font.tiny
                 }
 
                 Text {
                     visible: root.device && (root.device.trusted || root.device.blocked)
-                    text: (root.device.trusted ? "Trusted" : "") 
-                        + (root.device.trusted && root.device.blocked ? " | " : "") 
-                        + (root.device.blocked ? "Blocked" : "")
-                    color: root.device.blocked 
-                        ? Appearance.colors.secondary 
-                        : Appearance.colors.primary
+                    text: (root.device.trusted ? "Trusted" : "") + (root.device.trusted && root.device.blocked ? " | " : "") + (root.device.blocked ? "Blocked" : "")
+                    color: root.device.blocked ? Appearance.colors.secondary : Appearance.colors.primary
                     font.pixelSize: Appearance.font.tiny
                 }
             }
@@ -93,11 +81,11 @@ Rectangle {
                     onClicked: {
                         if (root.device) {
                             if (root.connected) {
-                                root.device.connected = false
+                                root.device.connected = false;
                             } else if (root.device.paired) {
-                                root.device.connected = true
+                                root.device.connected = true;
                             } else {
-                                root.device.pair()
+                                root.device.pair();
                             }
                         }
                     }
@@ -108,16 +96,16 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 22
                     text: (root.device && root.device.paired) ? "Forget" : "Pair"
-                    variant: (root.device && root.device.paired) ? "ghost" : "solid"
+                    variant: (root.device && root.device.paired) ? "ghost" : "outline"
                     fontSize: Appearance.font.small
                     padding: 0
                     visible: root.device && !root.connected
                     onClicked: {
                         if (root.device) {
                             if (root.device.paired) {
-                                root.device.forget()
+                                root.device.forget();
                             } else {
-                                root.device.pair()
+                                root.device.pair();
                             }
                         }
                     }

@@ -1,4 +1,4 @@
-module my-desktop
+module venus
 
 singleton Appearance config/Appearance.qml
 singleton BarConfig config/BarConfig.qml

@@ -78,6 +78,8 @@ Item {
             onFinished: {
                 if (root.isClosing) {
                     Networks.showPasswordDialog = false
+                    // Clear pending network when closing dialog without connecting
+                    Networks.pendingNetwork = null
                     root.isClosing = false
                     root.passwordBuffer = ""
                     root.hasError = false

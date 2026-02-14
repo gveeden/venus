@@ -26,7 +26,7 @@ RowLayout {
         Layout.preferredWidth: networkIcon.implicitWidth + BarConfig.margins
         Layout.preferredHeight: BarConfig.height
         color: "transparent"
-        
+
         Text {
             id: networkIcon
             property int signalStrength: networksModule.activeNetwork?.strength ?? 0
@@ -48,7 +48,7 @@ RowLayout {
             font.pixelSize: BarConfig.fontSize
             anchors.centerIn: parent
         }
-        
+
         MouseArea {
             anchors.fill: parent
             onClicked: networksModule.visible = !networksModule.visible
@@ -60,7 +60,7 @@ RowLayout {
         Layout.preferredWidth: bluetoothIcon.implicitWidth + BarConfig.margins
         Layout.preferredHeight: BarConfig.height
         color: "transparent"
-        
+
         Text {
             id: bluetoothIcon
             text: "󰂯"
@@ -69,7 +69,7 @@ RowLayout {
             font.pixelSize: BarConfig.fontSize
             anchors.centerIn: parent
         }
-        
+
         MouseArea {
             anchors.fill: parent
             onClicked: bluetoothModule.visible = !bluetoothModule.visible
@@ -81,7 +81,7 @@ RowLayout {
         Layout.preferredWidth: batteryText.implicitWidth + BarConfig.margins
         Layout.preferredHeight: BarConfig.height
         color: "transparent"
-        
+
         Text {
             id: batteryText
             property int batteryPercent: UPower.displayDevice ? Math.round(UPower.displayDevice.percentage * 100) : 0
@@ -117,7 +117,7 @@ RowLayout {
             font.pixelSize: BarConfig.fontSize
             anchors.centerIn: parent
         }
-        
+
         MouseArea {
             anchors.fill: parent
             onClicked: batteryModule.visible = !batteryModule.visible
@@ -129,14 +129,14 @@ RowLayout {
         Layout.preferredWidth: clockWidget.implicitWidth + BarConfig.margins
         Layout.preferredHeight: BarConfig.height
         color: "transparent"
-        
+
         ClockWidget {
             id: clockWidget
             fontSize: BarConfig.fontSize
             timeText: Time.fullStr
             anchors.centerIn: parent
         }
-        
+
         MouseArea {
             anchors.fill: parent
             onClicked: calendarModule.visible = !calendarModule.visible

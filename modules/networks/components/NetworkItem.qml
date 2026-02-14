@@ -1,6 +1,8 @@
 import "../../../config"
 import "../../../services"
 import "../../../components/controls"
+import Quickshell
+import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
 
@@ -12,21 +14,48 @@ Rectangle {
     readonly property bool connected: network && network.active
     readonly property bool saved: network && Networks.hasSavedProfile(network.ssid)
 
+    // Clipboard copy process
+    Process {
+        id: clipboardProc
+        running: false
+        command: ["wl-copy", ""]
+    }
+
+    // Notification process
+    Process {
+        id: notifyProc
+        running: false
+        command: ["notify-send", "Network", "MAC address copied to clipboard"]
+    }
+
+    function copyToClipboard(text: string): void {
+        if (!text || text.length === 0)
+            return;
+        clipboardProc.command = ["wl-copy", text];
+        clipboardProc.running = true;
+        notifyProc.running = true;
+    }
+
     // Signal strength calculation
     readonly property int signalStrength: network ? network.strength : 0
     readonly property string signalIcon: {
-        if (signalStrength >= 75) return "󰤨"  // Excellent
-        if (signalStrength >= 50) return "󰤥"  // Good
-        if (signalStrength >= 25) return "󰤢"  // Fair
-        return "󰤟"  // Weak
+        if (signalStrength >= 75)
+            return "󰤨";  // Excellent
+        if (signalStrength >= 50)
+            return "󰤥";  // Good
+        if (signalStrength >= 25)
+            return "󰤢";  // Fair
+        return "󰤟";  // Weak
     }
 
     // Frequency detection (2.4GHz vs 5GHz)
     readonly property int frequency: network ? network.frequency : 0
     readonly property string frequencyBand: {
-        if (frequency >= 5000) return "5GHz"
-        if (frequency >= 2400) return "2.4GHz"
-        return ""
+        if (frequency >= 5000)
+            return "5GHz";
+        if (frequency >= 2400)
+            return "2.4GHz";
+        return "";
     }
 
     // Security icon and type
@@ -35,9 +64,7 @@ Rectangle {
 
     width: parent ? parent.width : 0
     height: 110
-    color: connected 
-        ? Appearance.colors.surfaceHighlight 
-        : Appearance.colors.background
+    color: connected ? Appearance.colors.surfaceHighlight : Appearance.colors.background
     radius: Appearance.rounding.small
 
     ColumnLayout {
@@ -50,21 +77,27 @@ Rectangle {
             Layout.fillWidth: true
             spacing: Appearance.spacing.small
 
+            // Signal strength icon
+            Text {
+                text: root.signalIcon
+                color: Appearance.colors.text
+                font.pixelSize: Appearance.font.medium
+            }
+
             // SSID
             Text {
                 text: root.network ? (root.network.ssid || "Unknown Network") : "Unknown"
                 color: Appearance.colors.text
                 font.pixelSize: Appearance.font.medium
                 font.bold: true
-                Layout.fillWidth: true
             }
 
             // Frequency band
             Rectangle {
                 visible: root.frequencyBand.length > 0
                 Layout.preferredWidth: 50
-                Layout.preferredHeight: 18
-                color: Appearance.colors.primary
+                Layout.preferredHeight: 12
+                color: Appearance.colors.secondaryContainer
                 radius: Appearance.rounding.small
 
                 Text {
@@ -74,13 +107,6 @@ Rectangle {
                     font.pixelSize: Appearance.font.tiny
                     font.bold: true
                 }
-            }
-
-            // Signal strength icon
-            Text {
-                text: root.signalIcon
-                color: Appearance.colors.text
-                font.pixelSize: Appearance.font.medium
             }
 
             // Security icon
@@ -98,25 +124,23 @@ Rectangle {
             Layout.fillWidth: true
             spacing: Appearance.spacing.medium
 
-            Text {
-                text: root.network ? root.network.bssid : ""
-                color: Appearance.colors.textTertiary
-                font.pixelSize: Appearance.font.tiny
-            }
+            MouseArea {
+                Layout.preferredWidth: bssidText.implicitWidth
+                Layout.preferredHeight: bssidText.implicitHeight
+                cursorShape: Qt.PointingHandCursor
 
-            Text {
-                visible: root.connected
-                text: "(Connected)"
-                color: Appearance.colors.primaryContainer
-                font.pixelSize: Appearance.font.tiny
-                font.bold: true
-            }
+                onClicked: {
+                    if (root.network && root.network.bssid) {
+                        copyToClipboard(root.network.bssid);
+                    }
+                }
 
-            Text {
-                visible: !root.connected && root.saved
-                text: "(Saved)"
-                color: Appearance.colors.primary
-                font.pixelSize: Appearance.font.tiny
+                Text {
+                    id: bssidText
+                    text: root.network ? root.network.bssid : ""
+                    color: Appearance.colors.textTertiary
+                    font.pixelSize: Appearance.font.tiny
+                }
             }
 
             Item {
@@ -131,36 +155,33 @@ Rectangle {
             }
         }
 
-        // Signal strength bar
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 3
-            color: Appearance.colors.surface
-            radius: 2
-
-            Rectangle {
-                width: parent.width * (root.signalStrength / 100)
-                height: parent.height
-                color: {
-                    if (root.signalStrength >= 75) return Appearance.colors.primaryContainer
-                    if (root.signalStrength >= 50) return Appearance.colors.primary
-                    if (root.signalStrength >= 25) return Appearance.colors.secondaryContainer
-                    return Appearance.colors.secondary
-                }
-                radius: parent.radius
-            }
-        }
-
         // Action buttons row
         RowLayout {
             Layout.fillWidth: true
             Layout.preferredHeight: 25
             spacing: Appearance.spacing.small
+            Layout.alignment: Qt.AlignRight
+
+            // Forget button (only for saved networks)
+            Button {
+                visible: root.saved && !root.connected
+                Layout.preferredWidth: 90
+                Layout.preferredHeight: 25
+                text: "Forget"
+                variant: "outline"
+                fontSize: Appearance.font.small
+                padding: 0
+                onClicked: {
+                    if (root.network) {
+                        Networks.forgetNetwork(root.network.ssid);
+                    }
+                }
+            }
 
             // Connect/Disconnect button
             Button {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+                Layout.preferredHeight: 25
+                Layout.preferredWidth: 90
                 text: root.connected ? "Disconnect" : "Connect"
                 fontSize: Appearance.font.small
                 bold: true
@@ -170,26 +191,10 @@ Rectangle {
                 onClicked: {
                     if (root.network) {
                         if (root.connected) {
-                            Networks.disconnectFromNetwork()
+                            Networks.disconnectFromNetwork();
                         } else {
-                            Networks.connectToNetwork(root.network, "")
+                            Networks.connectToNetwork(root.network, "");
                         }
-                    }
-                }
-            }
-
-            // Forget button (only for saved networks)
-            Button {
-                visible: root.saved && !root.connected
-                Layout.preferredWidth: 70
-                Layout.fillHeight: true
-                text: "Forget"
-                variant: "ghost"
-                fontSize: Appearance.font.small
-                padding: 0
-                onClicked: {
-                    if (root.network) {
-                        Networks.forgetNetwork(root.network.ssid)
                     }
                 }
             }
