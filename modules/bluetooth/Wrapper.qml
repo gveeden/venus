@@ -1,7 +1,7 @@
 import "../../config"
 import "../../services"
+import "../../components/containers"
 import Quickshell
-import Quickshell.Hyprland
 import QtQuick
 import "." as BluetoothPrivate
 
@@ -15,51 +15,23 @@ Scope {
     property string bluetoothStatus: Bluetooth.status
     property bool bluetoothScanning: Bluetooth.scanning
 
-    HyprlandFocusGrab {
-        active: bluetoothWindow.visible
-        windows: [bluetoothWindow]
-        onCleared: {
-            bluetoothWindow.visible = false;
-        }
+    // Public functions for timer control
+    function startCloseTimer() {
+        bluetoothWindow.startCloseTimer()
     }
 
-    PanelWindow {
+    function stopCloseTimer() {
+        bluetoothWindow.stopCloseTimer()
+    }
+
+    DropdownWindow {
         id: bluetoothWindow
-        visible: false
+        windowWidth: BluetoothConfig.windowWidth
+        windowHeight: BluetoothConfig.windowHeight
+        topMargin: BluetoothConfig.topMargin
+        rightMargin: BluetoothConfig.rightMargin
+        contentMargins: 10
 
-        anchors {
-            top: true
-            right: true
-        }
-
-        margins {
-            top: BluetoothConfig.topMargin
-            right: BluetoothConfig.rightMargin
-        }
-
-        implicitWidth: BluetoothConfig.windowWidth
-        implicitHeight: BluetoothConfig.windowHeight
-        color: "transparent"
-
-        // Background with radius
-        Rectangle {
-            anchors.fill: parent
-            color: Appearance.colors.background
-            radius: Appearance.window.radius
-        }
-
-        // Border
-        Rectangle {
-            anchors.fill: parent
-            color: "transparent"
-            border.color: Appearance.colors.windowBorder
-            border.width: Appearance.window.borderThickness
-            radius: Appearance.window.radius
-        }
-
-        BluetoothPrivate.Content {
-            anchors.fill: parent
-            anchors.margins: Appearance.window.borderThickness + 10
-        }
+        content: BluetoothPrivate.Content {}
     }
 }

@@ -25,6 +25,8 @@ ColumnLayout {
         color: Appearance.colors.surface
         radius: Appearance.rounding.medium
 
+        property var filteredDevices: [...Bluetooth.devices.values].filter(root.deviceFilter)
+
         ListView {
             id: deviceList
             anchors.fill: parent
@@ -32,13 +34,11 @@ ColumnLayout {
             clip: true
             spacing: Appearance.spacing.small
 
-            model: [...Bluetooth.devices.values]
-                .filter(root.deviceFilter)
-                .sort((a, b) => {
-                    return (b.connected - a.connected) 
-                        || (b.paired - a.paired) 
-                        || a.name.localeCompare(b.name)
-                })
+            model: parent.filteredDevices.sort((a, b) => {
+                return (b.connected - a.connected) 
+                    || (b.paired - a.paired) 
+                    || a.name.localeCompare(b.name)
+            })
 
             delegate: Loader {
                 id: loader
@@ -58,7 +58,7 @@ ColumnLayout {
             color: Appearance.colors.textTertiary
             font.pixelSize: Appearance.font.small
             horizontalAlignment: Text.AlignHCenter
-            visible: deviceList.count === 0
+            visible: parent.filteredDevices.length === 0
         }
     }
 }

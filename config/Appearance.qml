@@ -56,6 +56,7 @@ QtObject {
     readonly property QtObject window: QtObject {
         property int borderThickness: 1
         property int radius: 8
+        property real opacity: 1.0
     }
 
     readonly property QtObject font: QtObject {
@@ -93,6 +94,7 @@ QtObject {
             colors.buttonText = "#1e1e2e";
             window.borderThickness = 1;
             window.radius = 8;
+            window.opacity = 1.0;
             break;
         case "gruvbox":
             colors.background = "#282828";
@@ -113,6 +115,7 @@ QtObject {
             colors.buttonText = colors.background;
             window.borderThickness = 1;
             window.radius = 8;
+            window.opacity = 1.0;
             break;
         case "nord":
             colors.background = "#2e3440";
@@ -133,6 +136,7 @@ QtObject {
             colors.buttonText = colors.background;
             window.borderThickness = 1;
             window.radius = 8;
+            window.opacity = 1.0;
             break;
         case "dracula":
             colors.background = "#282a36";
@@ -153,6 +157,7 @@ QtObject {
             colors.buttonText = colors.background;
             window.borderThickness = 1;
             window.radius = 8;
+            window.opacity = 1.0;
             break;
         case "onedark":
             colors.background = "#282c34";
@@ -173,6 +178,7 @@ QtObject {
             colors.buttonText = colors.background;
             window.borderThickness = 1;
             window.radius = 8;
+            window.opacity = 1.0;
             break;
         }
     }

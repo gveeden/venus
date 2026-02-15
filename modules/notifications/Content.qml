@@ -7,7 +7,7 @@ Rectangle {
     id: root
     property var notification
 
-    color: Appearance.colors.surface
+    color: Qt.rgba(Appearance.colors.surface.r, Appearance.colors.surface.g, Appearance.colors.surface.b, Appearance.window.opacity)
     radius: Appearance.rounding.large
     border.color: Appearance.colors.border
     border.width: 1

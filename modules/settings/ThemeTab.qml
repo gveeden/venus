@@ -310,6 +310,34 @@ ScrollView {
                     Layout.preferredWidth: 30
                 }
             }
+
+            // Window Opacity
+            RowLayout {
+                Layout.fillWidth: true
+
+                Text {
+                    text: "Window Opacity"
+                    color: Appearance.colors.text
+                    font.pixelSize: 13
+                    Layout.preferredWidth: 130
+                }
+
+                Slider {
+                    id: windowOpacitySlider
+                    Layout.fillWidth: true
+                    from: 0.1
+                    to: 1.0
+                    value: Appearance.window.opacity
+                    onValueChanged: { Appearance.window.opacity = value; saveTheme("window:opacity") }
+                }
+
+                Text {
+                    text: Math.round(Appearance.window.opacity * 100) + "%"
+                    color: Appearance.colors.text
+                    font.pixelSize: 13
+                    Layout.preferredWidth: 40
+                }
+            }
         }
 
         // Bottom spacing

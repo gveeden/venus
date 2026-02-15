@@ -41,7 +41,7 @@ Scope {
         // Background with radius
         Rectangle {
             anchors.fill: parent
-            color: Appearance.colors.background
+            color: Qt.rgba(Appearance.colors.background.r, Appearance.colors.background.g, Appearance.colors.background.b, Appearance.window.opacity)
             radius: Appearance.window.radius
         }
 

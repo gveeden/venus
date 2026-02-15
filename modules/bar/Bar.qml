@@ -6,10 +6,31 @@ import QtQuick.Layouts
 import "../../services"
 
 RowLayout {
+    id: root
     required property var bluetoothModule
     required property var networksModule
     required property var batteryModule
     required property var calendarModule
+
+    // Helper function to hide all modals except the specified one
+    function hideOtherModals(exceptModule) {
+        if (exceptModule !== networksModule) {
+            networksModule.stopCloseTimer()
+            networksModule.visible = false
+        }
+        if (exceptModule !== bluetoothModule) {
+            bluetoothModule.stopCloseTimer()
+            bluetoothModule.visible = false
+        }
+        if (exceptModule !== batteryModule) {
+            batteryModule.stopCloseTimer()
+            batteryModule.visible = false
+        }
+        if (exceptModule !== calendarModule) {
+            calendarModule.stopCloseTimer()
+            calendarModule.visible = false
+        }
+    }
 
     anchors.fill: parent
     anchors.leftMargin: BarConfig.margins
@@ -51,6 +72,13 @@ RowLayout {
 
         MouseArea {
             anchors.fill: parent
+            hoverEnabled: true
+            onEntered: {
+                root.hideOtherModals(networksModule)
+                networksModule.visible = true
+                networksModule.stopCloseTimer()
+            }
+            onExited: networksModule.startCloseTimer()
             onClicked: networksModule.visible = !networksModule.visible
         }
     }
@@ -72,6 +100,13 @@ RowLayout {
 
         MouseArea {
             anchors.fill: parent
+            hoverEnabled: true
+            onEntered: {
+                root.hideOtherModals(bluetoothModule)
+                bluetoothModule.visible = true
+                bluetoothModule.stopCloseTimer()
+            }
+            onExited: bluetoothModule.startCloseTimer()
             onClicked: bluetoothModule.visible = !bluetoothModule.visible
         }
     }
@@ -120,6 +155,13 @@ RowLayout {
 
         MouseArea {
             anchors.fill: parent
+            hoverEnabled: true
+            onEntered: {
+                root.hideOtherModals(batteryModule)
+                batteryModule.visible = true
+                batteryModule.stopCloseTimer()
+            }
+            onExited: batteryModule.startCloseTimer()
             onClicked: batteryModule.visible = !batteryModule.visible
         }
     }
@@ -139,6 +181,13 @@ RowLayout {
 
         MouseArea {
             anchors.fill: parent
+            hoverEnabled: true
+            onEntered: {
+                root.hideOtherModals(calendarModule)
+                calendarModule.visible = true
+                calendarModule.stopCloseTimer()
+            }
+            onExited: calendarModule.startCloseTimer()
             onClicked: calendarModule.visible = !calendarModule.visible
         }
     }

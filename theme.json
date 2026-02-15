@@ -13,14 +13,14 @@
     "secondaryContainer": "#e5c07b",
     "border": "#3e4451",
     "hover": "#4b5263",
-    "windowBorder": "#3e4451",
+    "windowBorder": "#e7e8ff",
     "buttonBorder": "#4b5263",
     "buttonBackground": "#61afef",
     "buttonText": "#282c34"
   },
   "window": {
-    "borderThickness": 1,
-    "radius": 8
+    "borderThickness": 5,
+    "radius": 20
   },
   "button": {
     "borderThickness": 1
