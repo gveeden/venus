@@ -10,11 +10,11 @@ Scope {
 
     // Public functions for timer control
     function startCloseTimer() {
-        calendarWindow.startCloseTimer()
+        calendarWindow.startCloseTimer();
     }
 
     function stopCloseTimer() {
-        calendarWindow.stopCloseTimer()
+        calendarWindow.stopCloseTimer();
     }
 
     DropdownWindow {
@@ -23,7 +23,8 @@ Scope {
         windowHeight: CalendarConfig.windowHeight
         topMargin: CalendarConfig.topMargin
         rightMargin: CalendarConfig.rightMargin
-        contentMargins: 16
+        xMargin: CalendarConfig.xMargin
+        yMargin: CalendarConfig.yMargin
 
         content: CalendarPrivate.Content {}
     }

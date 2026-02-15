@@ -10,12 +10,14 @@ PanelWindow {
     required property int topMargin
     required property int rightMargin
     required property int contentMargins
+    property int xMargin: 0
+    property int yMargin: 0
     property alias content: contentLoader.sourceComponent
 
     // Close timer - 2 second delay
     Timer {
         id: closeTimer
-        interval: 2000
+        interval: 500
         onTriggered: root.visible = false
     }
 
@@ -66,6 +68,9 @@ PanelWindow {
     Loader {
         id: contentLoader
         anchors.fill: parent
-        anchors.margins: Appearance.window.borderThickness + root.contentMargins
+        anchors.leftMargin: root.xMargin
+        anchors.rightMargin: root.xMargin
+        anchors.topMargin: root.yMargin
+        anchors.bottomMargin: root.yMargin
     }
 }
