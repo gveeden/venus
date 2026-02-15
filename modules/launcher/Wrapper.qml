@@ -1,5 +1,4 @@
 import "../../config"
-import Quickshell
 import QtQuick
 import "." as LauncherPrivate
 
@@ -15,22 +14,22 @@ Window {
 
     onVisibleChanged: {
         if (visible) {
-            content.focusSearch()
+            content.focusSearch();
         }
     }
 
     Rectangle {
         anchors.fill: parent
         color: Qt.rgba(Appearance.colors.background.r, Appearance.colors.background.g, Appearance.colors.background.b, Appearance.window.opacity)
-        radius: Appearance.rounding.large
-        border.color: Appearance.colors.border
-        border.width: 1
+        radius: Appearance.window.radius
+        border.color: Appearance.colors.windowBorder
+        border.width: Appearance.window.borderThickness
 
         LauncherPrivate.Content {
             id: content
             anchors.fill: parent
             anchors.margins: Appearance.padding.xlarge
-            
+
             search: launcher.search
             onSearchChanged: launcher.search = search
             onRequestClose: launcher.visible = false
