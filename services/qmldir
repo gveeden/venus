@@ -5,4 +5,6 @@ singleton Bluetooth Bluetooth.qml
 singleton Notifs Notifs.qml
 singleton Networks Networks.qml
 singleton Nmcli Nmcli.qml
+singleton Audio Audio.qml
+singleton Brightness Brightness.qml
 ThemeStorage ThemeStorage.qml

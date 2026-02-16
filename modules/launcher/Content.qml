@@ -1,6 +1,7 @@
 import "../../config"
 import Quickshell
 import Quickshell.Widgets
+import Quickshell.Io
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -16,14 +17,101 @@ ColumnLayout {
         input.forceActiveFocus()
     }
 
+    function clearSearch() {
+        root.search = ""
+        input.text = ""
+    }
+
+    // Calculator function
+    function calculate(expr) {
+        if (!expr || expr.trim() === "") return null
+        
+        expr = expr.replace(/\s/g, "")
+        
+        const hasOperator = /[\+\-\*\/\^\%\(\)]/.test(expr)
+        const isValidChars = /^[\d\+\-\*\/\^\%\(\)\.\s]+$/.test(expr)
+        
+        if (!isValidChars || (!hasOperator && !expr.includes("("))) return null
+        
+        try {
+            let sanitized = expr.replace(/\^/g, "**")
+            const result = new Function("return " + sanitized)()
+            
+            if (typeof result === "number" && isFinite(result)) {
+                return parseFloat(result.toFixed(6))
+            }
+        } catch (e) {}
+        return null
+    }
+
+    // Properties to hold calculator result for Enter key
+    property var currentCalcResult: null
+    
+    // Track running windows
+    property var runningWindows: []
+    property bool windowsLoaded: false
+    
+    // Process for copying to clipboard
+    Process {
+        id: clipboardProcess
+        command: ["wl-copy"]
+        running: false
+    }
+
+    function copyToClipboard(text) {
+        clipboardProcess.command = ["wl-copy", text]
+        clipboardProcess.running = true
+    }
+    
+    // Load running windows on startup
+    Component.onCompleted: {
+        refreshWindows()
+    }
+    
+    function refreshWindows() {
+        let winProcess = Qt.createQmlObject('
+            import Quickshell.Io
+            Process {
+                command: ["hyprctl", "clients", "-j"]
+                running: true
+                
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        try {
+                            let clients = JSON.parse(text)
+                            let windows = []
+                            for (let i = 0; i < clients.length; i++) {
+                                let client = clients[i]
+                                windows.push({
+                                    address: client.address,
+                                    class: client.class || "",
+                                    title: client.title || "",
+                                    initialClass: client.initialClass || "",
+                                    workspace: client.workspace ? client.workspace.name : ""
+                                })
+                            }
+                            root.runningWindows = windows
+                            root.windowsLoaded = true
+                        } catch (e) {
+                            root.runningWindows = []
+                            root.windowsLoaded = true
+                        }
+                    }
+                }
+            }
+        ', root)
+        winProcess.running = true
+    }
+
     TextField {
         id: input
         Layout.fillWidth: true
         Layout.preferredHeight: LauncherConfig.searchBoxHeight
-        placeholderText: "Search apps..."
-        placeholderTextColor: Appearance.colors.text
+        placeholderText: "What do you need?"
+        placeholderTextColor: Appearance.colors.textSecondary
         focus: true
         font.pointSize: Appearance.font.large
+        text: root.search
         
         background: Rectangle {
             color: Appearance.colors.surfaceHighlight
@@ -32,22 +120,61 @@ ColumnLayout {
         color: Appearance.colors.text
         
         onTextChanged: {
-            root.search = text
-            appList.currentIndex = 0
+            if (text !== root.search) {
+                root.search = text
+                root.currentCalcResult = root.calculate(text)
+                // Clear selection when search changes
+                appList.currentIndex = -1
+            }
+        }
+        
+        onActiveFocusChanged: {
+            if (activeFocus) {
+                // Clear selection when search box is focused
+                appList.currentIndex = -1
+            }
         }
         
         Keys.onPressed: (event) => {
             if (event.key === Qt.Key_Escape) {
-                root.requestClose()
+                // First ESC clears search, second ESC closes
+                if (root.search !== "" || input.text !== "") {
+                    root.clearSearch()
+                    event.accepted = true
+                } else {
+                    root.requestClose()
+                    event.accepted = true
+                }
             }
             
             if (event.key === Qt.Key_Down) {
                 appList.focus = true
+                if (appList.count > 0) {
+                    appList.currentIndex = 0
+                    // Skip headers
+                    while (appList.currentIndex < appList.count) {
+                        let item = appList.itemAtIndex(appList.currentIndex)
+                        if (item && item.modelData && item.modelData.type !== "header") {
+                            break
+                        }
+                        appList.currentIndex++
+                    }
+                    appList.positionViewAtIndex(appList.currentIndex, ListView.Center)
+                }
                 event.accepted = true
             }
             
             if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
-                if (appList.currentItem) appList.currentItem.launch()
+                if (root.currentCalcResult !== null && root.search.length > 0) {
+                    root.copyToClipboard(root.currentCalcResult.toString())
+                    root.requestClose()
+                } else if (appList.count > 0 && appList.currentIndex >= 0) {
+                    let item = appList.itemAtIndex(appList.currentIndex)
+                    if (item && item.item && item.item.launchOrFocus) {
+                        item.item.launchOrFocus()
+                    }
+                }
+                event.accepted = true
             }
         }
     }
@@ -57,77 +184,378 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
         clip: true
-        spacing: Appearance.spacing.small
+        spacing: 0
         
-        keyNavigationEnabled: true
-        highlightFollowsCurrentItem: true
+        keyNavigationEnabled: false
+        highlightFollowsCurrentItem: false
+        currentIndex: -1
         
-        model: DesktopEntries.applications.values
-            .slice()
-            .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
-            .filter(app => app.name.toLowerCase().includes(root.search.toLowerCase()))
+        flickableDirection: Flickable.VerticalFlick
+        boundsBehavior: Flickable.StopAtBounds
+        
+        model: {
+            let items = []
+            let searchLower = root.search.toLowerCase()
+            let calcResult = root.calculate(root.search)
+            
+            // Filter running windows
+            let filteredWindows = root.runningWindows.filter(w => {
+                if (searchLower === "") return true
+                let classMatch = (w.class || "").toLowerCase().includes(searchLower)
+                let titleMatch = (w.title || "").toLowerCase().includes(searchLower)
+                let initialMatch = (w.initialClass || "").toLowerCase().includes(searchLower)
+                return classMatch || titleMatch || initialMatch
+            })
+            
+            // Filter applications
+            let filteredApps = DesktopEntries.applications.values
+                .filter(app => {
+                    if (searchLower === "") return true
+                    return app.name.toLowerCase().includes(searchLower)
+                })
+                .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+            
+            // Calculator result first
+            if (calcResult !== null) {
+                items.push({ 
+                    type: "calculator", 
+                    result: calcResult, 
+                    expression: root.search,
+                    section: ""
+                })
+            }
+            
+            // Running windows section
+            if (filteredWindows.length > 0) {
+                items.push({ type: "header", title: "Open Windows", section: "windows" })
+                for (let i = 0; i < filteredWindows.length; i++) {
+                    let win = filteredWindows[i]
+                    items.push({
+                        type: "window",
+                        address: win.address,
+                        title: win.title || win.class || "Window",
+                        class: win.class,
+                        workspace: win.workspace,
+                        section: "windows"
+                    })
+                }
+            }
+            
+            // Applications section
+            if (filteredApps.length > 0) {
+                items.push({ type: "header", title: "Applications", section: "apps" })
+                for (let i = 0; i < filteredApps.length; i++) {
+                    let app = filteredApps[i]
+                    items.push({
+                        type: "app",
+                        app: app,
+                        section: "apps"
+                    })
+                }
+            }
+            
+            return items
+        }
 
-        delegate: ItemDelegate {
-            id: delegateItem
+        delegate: Loader {
+            id: itemLoader
             width: appList.width
-            height: LauncherConfig.itemHeight
+            height: modelData.type === "header" ? 30 : LauncherConfig.itemHeight
+            sourceComponent: modelData.type === "header" ? headerComponent : 
+                             modelData.type === "window" ? windowComponent :
+                             modelData.type === "calculator" ? calculatorComponent : appComponent
             
-            readonly property bool isSelected: ListView.isCurrentItem
-
-            function launch() {
-                modelData.execute()
-                root.requestClose()
-                root.search = ""
-                input.text = ""
-            }
-
-            background: Rectangle {
-                color: (delegateItem.hovered || delegateItem.isSelected) 
-                    ? Appearance.colors.hover 
-                    : "transparent"
-                opacity: 0.6
-                radius: Appearance.rounding.small
-            }
-
-            contentItem: RowLayout {
-                spacing: Appearance.spacing.medium
-                anchors.fill: parent 
-                anchors.leftMargin: Appearance.padding.large
-
-                Image {
-                    source: Quickshell.iconPath(modelData.icon)
-                    Layout.preferredWidth: LauncherConfig.iconSize
-                    Layout.preferredHeight: LauncherConfig.iconSize
-                    Layout.alignment: Qt.AlignVCenter
-                }
-
-                Text {
-                    text: modelData.name
-                    color: Appearance.colors.text
-                    font.pointSize: Appearance.font.regular
-                    verticalAlignment: Text.AlignVCenter
-                    Layout.fillWidth: true 
-                    elide: Text.ElideRight
+            property var modelData: model.modelData
+            property bool isSelected: ListView.isCurrentItem
+            property bool isHovered: false
+            
+            Component {
+                id: headerComponent
+                Rectangle {
+                    color: "transparent"
+                    
+                    Text {
+                        anchors {
+                            left: parent.left
+                            leftMargin: Appearance.padding.large
+                            verticalCenter: parent.verticalCenter
+                        }
+                        text: modelData.title
+                        color: Appearance.colors.textTertiary
+                        font.pixelSize: Appearance.font.small
+                        font.bold: true
+                    }
                 }
             }
-
-            onClicked: launch()
             
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Escape) {
+            Component {
+                id: calculatorComponent
+                Rectangle {
+                    color: isSelected ? Qt.rgba(Appearance.colors.primary.r, Appearance.colors.primary.g, Appearance.colors.primary.b, 0.3) :
+                           isHovered ? Appearance.colors.hover : "transparent"
+                    border.color: isSelected ? Appearance.colors.primary : "transparent"
+                    border.width: isSelected ? 2 : 0
+                    radius: Appearance.rounding.small
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered: itemLoader.isHovered = true
+                        onExited: itemLoader.isHovered = false
+                        onClicked: {
+                            appList.currentIndex = index
+                            root.copyToClipboard(modelData.result.toString())
+                            root.requestClose()
+                        }
+                    }
+                    
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: Appearance.padding.large
+                        anchors.rightMargin: Appearance.padding.large
+                        spacing: Appearance.spacing.medium
+                        
+                        Text {
+                            text: "="
+                            color: Appearance.colors.primary
+                            font.pixelSize: 24
+                            font.bold: true
+                        }
+                        
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+                            
+                            Text {
+                                text: modelData.result.toString()
+                                color: Appearance.colors.text
+                                font.pointSize: Appearance.font.regular
+                                font.bold: true
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                            
+                            Text {
+                                text: modelData.expression + " (Enter to copy)"
+                                color: Appearance.colors.textSecondary
+                                font.pixelSize: Appearance.font.small
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                        }
+                    }
+                    
+                    function launchOrFocus() {
+                        root.copyToClipboard(modelData.result.toString())
+                        root.requestClose()
+                    }
+                }
+            }
+            
+            Component {
+                id: windowComponent
+                Rectangle {
+                    color: isSelected ? Qt.rgba(Appearance.colors.primary.r, Appearance.colors.primary.g, Appearance.colors.primary.b, 0.3) :
+                           isHovered ? Appearance.colors.hover : "transparent"
+                    border.color: isSelected ? Appearance.colors.primary : "transparent"
+                    border.width: isSelected ? 2 : 0
+                    radius: Appearance.rounding.small
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered: itemLoader.isHovered = true
+                        onExited: itemLoader.isHovered = false
+                        onClicked: {
+                            appList.currentIndex = index
+                            focusWindow()
+                        }
+                    }
+                    
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: Appearance.padding.large
+                        anchors.rightMargin: Appearance.padding.large
+                        spacing: Appearance.spacing.medium
+                        
+                        Text {
+                            text: "▶"
+                            color: Appearance.colors.primary
+                            font.pixelSize: 16
+                        }
+                        
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+                            
+                            Text {
+                                text: modelData.title
+                                color: Appearance.colors.text
+                                font.pointSize: Appearance.font.regular
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                            
+                            Text {
+                                text: "Switch to window"
+                                color: Appearance.colors.textSecondary
+                                font.pixelSize: Appearance.font.small
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                        }
+                    }
+                    
+                    function launchOrFocus() {
+                        let focusProc = Qt.createQmlObject('
+                            import Quickshell.Io
+                            Process {
+                                command: ["hyprctl", "dispatch", "focuswindow", "address:' + modelData.address + '"]
+                                running: true
+                            }
+                        ', parent)
+                        focusProc.running = true
+                        root.requestClose()
+                    }
+                    
+                    function focusWindow() {
+                        launchOrFocus()
+                    }
+                }
+            }
+            
+            Component {
+                id: appComponent
+                Rectangle {
+                    color: isSelected ? Qt.rgba(Appearance.colors.primary.r, Appearance.colors.primary.g, Appearance.colors.primary.b, 0.3) :
+                           isHovered ? Appearance.colors.hover : "transparent"
+                    border.color: isSelected ? Appearance.colors.primary : "transparent"
+                    border.width: isSelected ? 2 : 0
+                    radius: Appearance.rounding.small
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered: itemLoader.isHovered = true
+                        onExited: itemLoader.isHovered = false
+                        onClicked: {
+                            appList.currentIndex = index
+                            launchApp()
+                        }
+                    }
+                    
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: Appearance.padding.large
+                        anchors.rightMargin: Appearance.padding.large
+                        spacing: Appearance.spacing.medium
+                        
+                        Image {
+                            source: modelData.app.icon ? Quickshell.iconPath(modelData.app.icon) : ""
+                            Layout.preferredWidth: LauncherConfig.iconSize
+                            Layout.preferredHeight: LauncherConfig.iconSize
+                            visible: source != ""
+                        }
+                        
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+                            
+                            Text {
+                                text: modelData.app.name
+                                color: Appearance.colors.text
+                                font.pointSize: Appearance.font.regular
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                            
+                            Text {
+                                text: modelData.app.description || "Launch new instance"
+                                color: Appearance.colors.textSecondary
+                                font.pixelSize: Appearance.font.small
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                        }
+                    }
+                    
+                    function launchOrFocus() {
+                        modelData.app.execute()
+                        root.requestClose()
+                    }
+                    
+                    function launchApp() {
+                        launchOrFocus()
+                    }
+                }
+            }
+        }
+        
+        Keys.onPressed: (event) => {
+            if (event.key === Qt.Key_Escape) {
+                // First ESC clears search, second ESC closes
+                if (root.search !== "") {
+                    root.clearSearch()
+                    event.accepted = true
+                } else {
                     root.requestClose()
                     event.accepted = true
                 }
-                
-                if (event.key === Qt.Key_Up && appList.currentIndex === 0) {
+            }
+            
+            if (event.key === Qt.Key_Up) {
+                if (currentIndex > 0) {
+                    currentIndex--
+                    // Skip headers
+                    while (currentIndex >= 0) {
+                        let item = itemAtIndex(currentIndex)
+                        if (item && item.modelData && item.modelData.type !== "header") {
+                            break
+                        }
+                        currentIndex--
+                    }
+                    if (currentIndex < 0) {
+                        input.focus = true
+                        currentIndex = -1
+                    } else {
+                        positionViewAtIndex(currentIndex, ListView.Center)
+                    }
+                } else {
                     input.focus = true
-                    event.accepted = true
+                    currentIndex = -1
                 }
-                
-                if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
-                    launch()
-                    event.accepted = true
+                event.accepted = true
+            }
+            
+            if (event.key === Qt.Key_Down) {
+                if (currentIndex < count - 1) {
+                    currentIndex++
+                    // Skip headers
+                    while (currentIndex < count) {
+                        let item = itemAtIndex(currentIndex)
+                        if (item && item.modelData && item.modelData.type !== "header") {
+                            break
+                        }
+                        currentIndex++
+                    }
+                    if (currentIndex >= count) {
+                        currentIndex = count - 1
+                    }
+                    if (currentIndex >= 0) {
+                        positionViewAtIndex(currentIndex, ListView.Center)
+                    }
                 }
+                event.accepted = true
+            }
+            
+            if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
+                if (currentIndex >= 0) {
+                    let item = itemAtIndex(currentIndex)
+                    if (item && item.item && item.item.launchOrFocus) {
+                        item.item.launchOrFocus()
+                    }
+                }
+                event.accepted = true
             }
         }
     }

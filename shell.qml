@@ -9,6 +9,7 @@ import "./modules/clipse" as ClipseModule
 import "./modules/battery" as BatteryModule
 import "./modules/calendar" as CalendarModule
 import "./modules/settings" as SettingsModule
+import "./modules/osd" as OsdModule
 import "./services"
 
 ShellRoot {
@@ -55,6 +56,11 @@ ShellRoot {
 
     Notifications.Wrapper {
         id: notificationModule
+    }
+
+    // OSD module for volume/brightness notifications
+    OsdModule.Wrapper {
+        id: osdModule
     }
 
     ClipseModule.Wrapper {
