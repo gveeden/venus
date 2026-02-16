@@ -1,0 +1,3 @@
+module launcher.components
+
+singleton CurrencyConverter CurrencyConverter.qml
