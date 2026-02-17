@@ -12,25 +12,35 @@ RowLayout {
     required property var batteryModule
     required property var calendarModule
 
-    // Helper function to hide all modals except the specified one
+    property int hoverDelay: 300
+
     function hideOtherModals(exceptModule) {
         if (exceptModule !== networksModule) {
+            networksHoverTimer.stop()
             networksModule.stopCloseTimer()
             networksModule.visible = false
         }
         if (exceptModule !== bluetoothModule) {
+            bluetoothHoverTimer.stop()
             bluetoothModule.stopCloseTimer()
             bluetoothModule.visible = false
         }
         if (exceptModule !== batteryModule) {
+            batteryHoverTimer.stop()
             batteryModule.stopCloseTimer()
             batteryModule.visible = false
         }
         if (exceptModule !== calendarModule) {
+            calendarHoverTimer.stop()
             calendarModule.stopCloseTimer()
             calendarModule.visible = false
         }
     }
+
+    Timer { id: networksHoverTimer; interval: root.hoverDelay; onTriggered: { networksModule.visible = true; networksModule.stopCloseTimer() } }
+    Timer { id: bluetoothHoverTimer; interval: root.hoverDelay; onTriggered: { bluetoothModule.visible = true; bluetoothModule.stopCloseTimer() } }
+    Timer { id: batteryHoverTimer; interval: root.hoverDelay; onTriggered: { batteryModule.visible = true; batteryModule.stopCloseTimer() } }
+    Timer { id: calendarHoverTimer; interval: root.hoverDelay; onTriggered: { calendarModule.visible = true; calendarModule.stopCloseTimer() } }
 
     anchors.fill: parent
     anchors.leftMargin: BarConfig.margins
@@ -75,11 +85,16 @@ RowLayout {
             hoverEnabled: true
             onEntered: {
                 root.hideOtherModals(networksModule)
-                networksModule.visible = true
-                networksModule.stopCloseTimer()
+                networksHoverTimer.start()
             }
-            onExited: networksModule.startCloseTimer()
-            onClicked: networksModule.visible = !networksModule.visible
+            onExited: {
+                networksHoverTimer.stop()
+                networksModule.startCloseTimer()
+            }
+            onClicked: {
+                networksHoverTimer.stop()
+                networksModule.visible = !networksModule.visible
+            }
         }
     }
 
@@ -103,11 +118,16 @@ RowLayout {
             hoverEnabled: true
             onEntered: {
                 root.hideOtherModals(bluetoothModule)
-                bluetoothModule.visible = true
-                bluetoothModule.stopCloseTimer()
+                bluetoothHoverTimer.start()
             }
-            onExited: bluetoothModule.startCloseTimer()
-            onClicked: bluetoothModule.visible = !bluetoothModule.visible
+            onExited: {
+                bluetoothHoverTimer.stop()
+                bluetoothModule.startCloseTimer()
+            }
+            onClicked: {
+                bluetoothHoverTimer.stop()
+                bluetoothModule.visible = !bluetoothModule.visible
+            }
         }
     }
 
@@ -158,11 +178,16 @@ RowLayout {
             hoverEnabled: true
             onEntered: {
                 root.hideOtherModals(batteryModule)
-                batteryModule.visible = true
-                batteryModule.stopCloseTimer()
+                batteryHoverTimer.start()
             }
-            onExited: batteryModule.startCloseTimer()
-            onClicked: batteryModule.visible = !batteryModule.visible
+            onExited: {
+                batteryHoverTimer.stop()
+                batteryModule.startCloseTimer()
+            }
+            onClicked: {
+                batteryHoverTimer.stop()
+                batteryModule.visible = !batteryModule.visible
+            }
         }
     }
 
@@ -184,11 +209,16 @@ RowLayout {
             hoverEnabled: true
             onEntered: {
                 root.hideOtherModals(calendarModule)
-                calendarModule.visible = true
-                calendarModule.stopCloseTimer()
+                calendarHoverTimer.start()
             }
-            onExited: calendarModule.startCloseTimer()
-            onClicked: calendarModule.visible = !calendarModule.visible
+            onExited: {
+                calendarHoverTimer.stop()
+                calendarModule.startCloseTimer()
+            }
+            onClicked: {
+                calendarHoverTimer.stop()
+                calendarModule.visible = !calendarModule.visible
+            }
         }
     }
 }

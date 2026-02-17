@@ -46,13 +46,12 @@ PanelWindow {
     implicitHeight: root.windowHeight
     color: "transparent"
 
-    // MouseArea to detect hover over window
-    MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: root.stopCloseTimer()
-        onExited: root.startCloseTimer()
-        propagateComposedEvents: true
+    // HoverHandler to detect hover over window (doesn't block child events)
+    HoverHandler {
+        onHoveredChanged: {
+            if (hovered) root.stopCloseTimer()
+            else root.startCloseTimer()
+        }
     }
 
     // Background with radius
