@@ -4,12 +4,12 @@ import QtQuick
 
 QtObject {
     // Match mako dimensions
-    readonly property int width: 300
+    readonly property int width: 350
     readonly property int height: 110
     readonly property int topMargin: 50
     readonly property int rightMargin: 20
     readonly property int iconSize: 64
-    readonly property int borderSize: 2
+    readonly property int borderSize: 1
     readonly property int borderRadius: 15
 
     // Default timeout (mako: default-timeout=5000)

@@ -16,7 +16,12 @@ Singleton {
         persistenceSupported: true
     }
 
+    // Live notifications (undismissed) — used for popups
     readonly property var notifications: notifServer.trackedNotifications
+
+    // History: retains dismissed notifications that were critical or had actions.
+    // Each entry is a plain JS object snapshot so it survives dismissal.
+    property var history: []
 
     Connections {
         target: notifServer
@@ -26,26 +31,51 @@ Singleton {
         }
     }
 
-    // Dismiss a notification
+    // Dismiss a notification, saving it to history if it qualifies
     function dismiss(notification): void {
-        if (notification) {
-            notification.dismiss()
-        }
+        if (!notification) return
+        _saveToHistory(notification)
+        notification.dismiss()
     }
 
     // Dismiss all notifications
     function dismissAll(): void {
         if (!notifications) return
-
-        // Copy to array first since we'll be modifying the list
-        let toDismiss = []
-        let count = notifications.count || 0
-        for (let i = 0; i < count; i++) {
-            toDismiss.push(notifications.get(i))
-        }
-
+        let toDismiss = [...notifications]
         for (let notif of toDismiss) {
-            notif.dismiss()
+            if (notif) {
+                _saveToHistory(notif)
+                notif.dismiss()
+            }
         }
+    }
+
+    // Remove a single entry from the history list
+    function removeFromHistory(entry): void {
+        root.history = root.history.filter(e => e !== entry)
+    }
+
+    // Clear the entire history
+    function clearHistory(): void {
+        root.history = []
+    }
+
+    // Snapshot a notification into history if it was critical or had actions
+    function _saveToHistory(notification): void {
+        const isCritical = (notification.urgency === NotificationUrgency.Critical)
+        const hasActions = notification.actions && notification.actions.length > 0
+        if (!isCritical && !hasActions) return
+
+        const entry = {
+            appName:   notification.appName   || "",
+            summary:   notification.summary   || "",
+            body:      notification.body       || "",
+            urgency:   notification.urgency,
+            isCritical: isCritical,
+            hasActions: hasActions,
+            time:      new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        }
+        // Prepend so newest is at the top
+        root.history = [entry, ...root.history]
     }
 }

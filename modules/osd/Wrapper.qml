@@ -31,9 +31,24 @@ Scope {
         property int lastBrightness: -1
         property bool lastMuted: false
 
+        // Suppress all signals fired during the initial service startup window.
+        // Audio emits multiple times at startup (Component.onCompleted query +
+        // the immediate pactl subscribe event), so a time-based gate is more
+        // reliable than counting individual emissions.
+        property bool ready: false
+
+        Timer {
+            id: readyTimer
+            interval: 1500
+            repeat: false
+            running: true
+            onTriggered: osdWindow.ready = true
+        }
+
         Connections {
             target: Audio
             function onVolumeChangedSignal() {
+                if (!osdWindow.ready) return
                 osdWindow.lastType = "volume"
                 osdWindow.lastVolume = Audio.volume
                 osdWindow.lastMuted = Audio.isMuted
@@ -44,6 +59,7 @@ Scope {
         Connections {
             target: Brightness
             function onBrightnessChangedSignal() {
+                if (!osdWindow.ready) return
                 osdWindow.lastType = "brightness"
                 osdWindow.lastBrightness = Brightness.brightnessPercent
                 osdWindow.showOsd()

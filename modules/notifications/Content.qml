@@ -23,7 +23,7 @@ Rectangle {
 
     // Track hover state
     property bool isHovered: false
-    
+
     // Auto-dismiss timer - disabled for now to support notification history
     // Timer {
     //     id: dismissTimer

@@ -49,11 +49,10 @@ Rectangle {
         lastState = -1
     }
 
-    // Short delay after pairing completes before calling connect().
-    // BlueZ needs a moment to settle the pairing D-Bus transaction before
-    // it will accept a Connect() call without rejecting it.
+    // After pairing: wait for trusted to be confirmed, then connect.
+    // BlueZ needs a moment to settle the D-Bus trust write before Connect() works.
     Timer {
-        id: postPairConnectTimer
+        id: postTrustConnectTimer
         interval: 750
         repeat: false
         onTriggered: {
@@ -62,16 +61,17 @@ Rectangle {
                 root._pendingPairAddress = ""
                 return
             }
-            if (dev.paired) {
+            if (dev.paired && dev.trusted) {
                 dev.connect()
             } else {
-                // Pairing didn't stick — give up
+                // Trust didn't stick — give up
                 root._pendingPairAddress = ""
             }
         }
     }
 
-    // Watch pairing → paired transition to apply trust then schedule connect
+    // Watch pairing → paired transition, then trust, then connect.
+    // Also handles the already-paired path: ensure trusted before connecting.
     Connections {
         target: root.liveDevice
         enabled: !root.isOffline
@@ -82,16 +82,26 @@ Rectangle {
             if (!dev) return
 
             if (!dev.pairing && dev.paired) {
-                // Pairing just completed successfully.
-                // Trust the device immediately so it can reconnect without confirmation.
+                // Pairing succeeded. Set trusted — onTrustedChanged will schedule connect.
                 dev.trusted = true
-                // Schedule connect after a short delay to let BlueZ settle.
-                // _pendingPairAddress stays set until onStateChanged sees Connected
-                // or the timer fires and clears it on failure.
-                postPairConnectTimer.restart()
             } else if (!dev.pairing && !dev.paired) {
-                // Pairing was cancelled or failed — clean up.
-                postPairConnectTimer.stop()
+                // Pairing was cancelled or failed.
+                postTrustConnectTimer.stop()
+                root._pendingPairAddress = ""
+            }
+        }
+
+        function onTrustedChanged(): void {
+            if (!root._waitingForPair) return
+            const dev = root.liveDevice
+            if (!dev) return
+
+            if (dev.trusted && dev.paired) {
+                // Trust confirmed — now safe to connect.
+                postTrustConnectTimer.restart()
+            } else if (!dev.trusted) {
+                // Trust was revoked or failed — abort.
+                postTrustConnectTimer.stop()
                 root._pendingPairAddress = ""
             }
         }
@@ -104,18 +114,15 @@ Rectangle {
                 root.connectFailed = false
             } else if (s === BluetoothDeviceState.Disconnected
                        && root.lastState === BluetoothDeviceState.Connecting) {
-                // Only show the error if this wasn't our own post-pair connect attempt.
-                // If _waitingForPair is still set, the timer hasn't fired yet or the
-                // connect attempt from the timer failed — clear the pending state too.
                 if (!root._waitingForPair) {
                     root.connectFailed = true
                 }
                 root._pendingPairAddress = ""
-                postPairConnectTimer.stop()
+                postTrustConnectTimer.stop()
             } else if (s === BluetoothDeviceState.Connected) {
                 root.connectFailed = false
                 root._pendingPairAddress = ""
-                postPairConnectTimer.stop()
+                postTrustConnectTimer.stop()
             }
             root.lastState = s
         }
@@ -212,11 +219,15 @@ Rectangle {
                     }
 
                     if (!root.isPaired) {
-                        // New device: pair first. onPairingChanged will trust + connect.
+                        // New device: pair → trust → connect via signal chain.
                         root._pendingPairAddress = root.liveDevice.address
                         root.liveDevice.pair()
+                    } else if (!root.liveDevice.trusted) {
+                        // Paired but not yet trusted: trust first, then connect via onTrustedChanged.
+                        root._pendingPairAddress = root.liveDevice.address
+                        root.liveDevice.trusted = true
                     } else {
-                        // Already paired: connect directly.
+                        // Already paired and trusted: connect directly.
                         root.liveDevice.connect()
                     }
                 }

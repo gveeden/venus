@@ -17,7 +17,7 @@ Scope {
             right: true
         }
 
-        implicitWidth: NotificationConfig.width
+        implicitWidth: NotificationConfig.width + NotificationConfig.rightMargin
         implicitHeight: notificationColumn.height + NotificationConfig.topMargin + 20
 
         exclusionMode: ExclusionMode.Ignore
@@ -72,8 +72,13 @@ Scope {
         onIsVisibleChanged: {
             visible = isVisible;
             if (isVisible) {
-                forceActiveFocus();
+                historyLayout.forceActiveFocus();
             }
+        }
+
+        Shortcut {
+            sequence: "Escape"
+            onActivated: historyWindow.isVisible = false
         }
 
         Rectangle {
@@ -119,15 +124,61 @@ Scope {
                 }
             }
 
-            Text {
-                text: "Clear All"
-                color: Appearance.colors.error
-                font.pixelSize: Appearance.font.small
+            // Button row: dismiss all live + clear history
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Appearance.spacing.small
 
-                MouseArea {
-                    anchors.fill: parent
-                    anchors.margins: -5
-                    onClicked: Notifs.dismissAll()
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 28
+                    color: dismissAllHover.containsMouse ? Appearance.colors.hover : Appearance.colors.surfaceHighlight
+                    radius: Appearance.rounding.small
+                    border.color: Appearance.colors.secondary
+                    border.width: 1
+                    visible: Notifs.notifications.count > 0
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Dismiss All"
+                        color: Appearance.colors.secondary
+                        font.pixelSize: Appearance.font.small
+                        font.bold: true
+                    }
+
+                    MouseArea {
+                        id: dismissAllHover
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: Notifs.dismissAll()
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 28
+                    color: clearHistoryHover.containsMouse ? Appearance.colors.hover : Appearance.colors.surfaceHighlight
+                    radius: Appearance.rounding.small
+                    border.color: Appearance.colors.textTertiary
+                    border.width: 1
+                    visible: Notifs.history.length > 0
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Clear History"
+                        color: Appearance.colors.textTertiary
+                        font.pixelSize: Appearance.font.small
+                        font.bold: true
+                    }
+
+                    MouseArea {
+                        id: clearHistoryHover
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: Notifs.clearHistory()
+                    }
                 }
             }
 
@@ -137,27 +188,37 @@ Scope {
                 Layout.fillHeight: true
                 clip: true
                 spacing: Appearance.spacing.small
-                focus: true
 
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Escape) {
-                        historyWindow.isVisible = false;
-                        event.accepted = true;
-                    }
+                // Merge live notifications + dismissed history into one list.
+                // Live entries come first (most recent action needed), then history.
+                model: {
+                    let live = [...Notifs.notifications].map(n => ({
+                                isLive: true,
+                                liveRef: n,
+                                appName: n.appName || "",
+                                summary: n.summary || "",
+                                body: n.body || "",
+                                isCritical: n.urgency === 2  // NotificationUrgency.Critical
+                                ,
+                                time: ""
+                            }));
+                    let hist = Notifs.history.map(e => ({
+                                isLive: false,
+                                e
+                            }));
+                    return live.concat(hist);
                 }
-
-                model: Notifs.notifications
 
                 delegate: Rectangle {
                     width: historyList.width
-                    height: notificationItem.height + Appearance.padding.medium * 2
-                    color: Appearance.colors.surfaceHighlight
+                    height: notifContent.height + Appearance.padding.medium * 2
+                    color: modelData.isCritical ? Qt.rgba(Appearance.colors.secondary.r, Appearance.colors.secondary.g, Appearance.colors.secondary.b, 0.15) : Appearance.colors.surfaceHighlight
                     radius: Appearance.rounding.small
-
-                    property var notif: modelData
+                    border.color: modelData.isCritical ? Appearance.colors.secondary : "transparent"
+                    border.width: modelData.isCritical ? 1 : 0
 
                     ColumnLayout {
-                        id: notificationItem
+                        id: notifContent
                         anchors {
                             left: parent.left
                             right: parent.right
@@ -170,7 +231,7 @@ Scope {
                             Layout.fillWidth: true
 
                             Text {
-                                text: notif.appName || "Notification"
+                                text: modelData.appName || "Notification"
                                 color: Appearance.colors.textTertiary
                                 font.pixelSize: Appearance.font.small
                                 font.bold: true
@@ -178,6 +239,15 @@ Scope {
                                 elide: Text.ElideRight
                             }
 
+                            // Timestamp for history entries
+                            Text {
+                                text: modelData.time || ""
+                                color: Appearance.colors.textTertiary
+                                font.pixelSize: Appearance.font.tiny
+                                visible: !modelData.isLive && modelData.time !== ""
+                            }
+
+                            // Dismiss (live) or remove from history
                             Text {
                                 text: "✕"
                                 color: Appearance.colors.textTertiary
@@ -186,13 +256,18 @@ Scope {
                                 MouseArea {
                                     anchors.fill: parent
                                     anchors.margins: -5
-                                    onClicked: Notifs.dismiss(notif)
+                                    onClicked: {
+                                        if (modelData.isLive)
+                                            Notifs.dismiss(modelData.liveRef);
+                                        else
+                                            Notifs.removeFromHistory(modelData);
+                                    }
                                 }
                             }
                         }
 
                         Text {
-                            text: notif.summary || ""
+                            text: modelData.summary || ""
                             color: Appearance.colors.text
                             font.bold: true
                             font.pixelSize: Appearance.font.regular
@@ -202,14 +277,22 @@ Scope {
                         }
 
                         Text {
-                            text: notif.body || ""
+                            text: modelData.body || ""
                             color: Appearance.colors.textSecondary
                             font.pixelSize: Appearance.font.small
                             Layout.fillWidth: true
                             wrapMode: Text.WordWrap
                             maximumLineCount: 2
                             elide: Text.ElideRight
-                            visible: notif.body && notif.body !== ""
+                            visible: modelData.body !== ""
+                        }
+
+                        // "Dismissed" badge for history entries
+                        Text {
+                            text: modelData.isCritical ? "⚠ Critical · Dismissed" : "Dismissed"
+                            color: modelData.isCritical ? Appearance.colors.secondary : Appearance.colors.textTertiary
+                            font.pixelSize: Appearance.font.tiny
+                            visible: !modelData.isLive
                         }
                     }
                 }

@@ -9,7 +9,7 @@ ColumnLayout {
     id: root
 
     property real fontSize: Appearance.font.tiny
-    spacing: 0
+    spacing: -1
 
     // Upload row
     RowLayout {
