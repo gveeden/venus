@@ -24,16 +24,16 @@ Rectangle {
     // Track hover state
     property bool isHovered: false
     
-    // Auto-dismiss timer - pauses on hover
-    Timer {
-        id: dismissTimer
-        interval: root.notification ? NotificationConfig.getTimeout(root.notification.urgency, root.notification.category) : 5000
-        running: interval > 0 && !root.isHovered  // Only run if there's a timeout and not hovering
-        repeat: false
-        onTriggered: {
-            root.dismissClicked();
-        }
-    }
+    // Auto-dismiss timer - disabled for now to support notification history
+    // Timer {
+    //     id: dismissTimer
+    //     interval: root.notification ? NotificationConfig.getTimeout(root.notification.urgency, root.notification.category) : 5000
+    //     running: interval > 0 && !root.isHovered  // Only run if there's a timeout and not hovering
+    //     repeat: false
+    //     onTriggered: {
+    //         root.dismissClicked();
+    //     }
+    // }
 
     // Click to dismiss
     MouseArea {

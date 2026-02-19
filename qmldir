@@ -9,12 +9,17 @@ singleton BatteryConfig config/BatteryConfig.qml
 singleton CalendarConfig config/CalendarConfig.qml
 singleton NotificationConfig config/NotificationConfig.qml
 singleton SettingsConfig config/SettingsConfig.qml
+singleton SoundConfig config/SoundConfig.qml
 
 singleton Time services/Time.qml
 singleton Bluetooth services/Bluetooth.qml
 singleton Networks services/Networks.qml
 singleton Notifs services/Notifs.qml
+singleton Audio services/Audio.qml
+singleton BluetoothStore services/BluetoothStore.qml
+singleton NetworkSpeed services/NetworkSpeed.qml
 
 ThemeStorage services/ThemeStorage.qml
 ClockWidget components/widgets/ClockWidget.qml
+NetworkSpeedWidget components/widgets/NetworkSpeedWidget.qml
 Button components/controls/Button.qml

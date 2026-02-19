@@ -1,5 +1,6 @@
 import Quickshell
 import Quickshell.Io
+import QtQuick
 import "./modules/bar" as Bar
 import "./modules/launcher" as Launcher
 import "./modules/notifications" as Notifications
@@ -10,6 +11,7 @@ import "./modules/battery" as BatteryModule
 import "./modules/calendar" as CalendarModule
 import "./modules/settings" as SettingsModule
 import "./modules/osd" as OsdModule
+import "./modules/sound" as SoundModule
 import "./services"
 
 ShellRoot {
@@ -40,6 +42,11 @@ ShellRoot {
         id: calendarModule
     }
 
+    // Sound module (needs to be before bar)
+    SoundModule.Wrapper {
+        id: soundModule
+    }
+
     // Modules
     Bar.BarWrapper {
         id: barModule
@@ -47,6 +54,7 @@ ShellRoot {
         networksModule: networksModule
         batteryModule: batteryModule
         calendarModule: calendarModule
+        soundModule: soundModule
     }
 
     Launcher.Wrapper {
@@ -54,8 +62,24 @@ ShellRoot {
         visible: false
     }
 
+    // Connect launcher to notification history
+    Connections {
+        target: launcherModule
+        function onOpenNotificationHistory() {
+            notificationModule.openHistory();
+        }
+    }
+
     Notifications.Wrapper {
         id: notificationModule
+    }
+
+    // IPC Handler for notification history toggle
+    IpcHandler {
+        target: "notification-history"
+        function open(): void {
+            notificationModule.openHistory();
+        }
     }
 
     // OSD module for volume/brightness notifications

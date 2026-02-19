@@ -1,3 +1,4 @@
 module widgets
 
 ClockWidget ClockWidget.qml
+NetworkSpeedWidget NetworkSpeedWidget.qml

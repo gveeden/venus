@@ -78,23 +78,30 @@ ColumnLayout {
         Layout.fillHeight: true
         spacing: Appearance.spacing.medium
 
-        // Paired devices section
+        // Connected devices section
         DeviceList {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            title: "Paired Devices"
-            emptyMessage: "No paired devices"
-            deviceFilter: device => device && (device.paired || device.connected)
+            title: "Connected"
+            emptyMessage: "No connected devices"
+            deviceFilter: device => device && device.connected
         }
 
-        // Available devices section
+        // Available devices section — paired (disconnected) + nearby unpaired
         DeviceList {
             Layout.fillWidth: true
             Layout.fillHeight: true
             title: "Available Devices"
             emptyMessage: "No devices found\nClick Scan to discover"
             deviceFilter: device => {
-                return device && device.name && !Bluetooth.isNameMacAddress(device.name, device.address) && !device.paired && !device.connected;
+                if (!device) return false
+                if (device.connected) return false
+                // Always show paired/bonded devices (even if temporarily unnamed)
+                if (device.paired || device.bonded) return true
+                // Show unnamed devices while scanning — they may fill in a name shortly
+                if (!device.name) return Bluetooth.scanning
+                // Hide unpaired devices whose "name" is just their MAC address
+                return !Bluetooth.isNameMacAddress(device.name, device.address)
             }
         }
     }

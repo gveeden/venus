@@ -11,36 +11,78 @@ RowLayout {
     required property var networksModule
     required property var batteryModule
     required property var calendarModule
+    required property var soundModule
 
     property int hoverDelay: 300
 
     function hideOtherModals(exceptModule) {
         if (exceptModule !== networksModule) {
-            networksHoverTimer.stop()
-            networksModule.stopCloseTimer()
-            networksModule.visible = false
+            networksHoverTimer.stop();
+            networksModule.stopCloseTimer();
+            networksModule.visible = false;
         }
         if (exceptModule !== bluetoothModule) {
-            bluetoothHoverTimer.stop()
-            bluetoothModule.stopCloseTimer()
-            bluetoothModule.visible = false
+            bluetoothHoverTimer.stop();
+            bluetoothModule.stopCloseTimer();
+            bluetoothModule.visible = false;
         }
         if (exceptModule !== batteryModule) {
-            batteryHoverTimer.stop()
-            batteryModule.stopCloseTimer()
-            batteryModule.visible = false
+            batteryHoverTimer.stop();
+            batteryModule.stopCloseTimer();
+            batteryModule.visible = false;
         }
         if (exceptModule !== calendarModule) {
-            calendarHoverTimer.stop()
-            calendarModule.stopCloseTimer()
-            calendarModule.visible = false
+            calendarHoverTimer.stop();
+            calendarModule.stopCloseTimer();
+            calendarModule.visible = false;
+        }
+        if (exceptModule !== soundModule) {
+            soundHoverTimer.stop();
+            soundModule.stopCloseTimer();
+            soundModule.visible = false;
         }
     }
 
-    Timer { id: networksHoverTimer; interval: root.hoverDelay; onTriggered: { networksModule.visible = true; networksModule.stopCloseTimer() } }
-    Timer { id: bluetoothHoverTimer; interval: root.hoverDelay; onTriggered: { bluetoothModule.visible = true; bluetoothModule.stopCloseTimer() } }
-    Timer { id: batteryHoverTimer; interval: root.hoverDelay; onTriggered: { batteryModule.visible = true; batteryModule.stopCloseTimer() } }
-    Timer { id: calendarHoverTimer; interval: root.hoverDelay; onTriggered: { calendarModule.visible = true; calendarModule.stopCloseTimer() } }
+    Timer {
+        id: networksHoverTimer
+        interval: root.hoverDelay
+        onTriggered: {
+            networksModule.visible = true;
+            networksModule.stopCloseTimer();
+        }
+    }
+    Timer {
+        id: bluetoothHoverTimer
+        interval: root.hoverDelay
+        onTriggered: {
+            bluetoothModule.visible = true;
+            bluetoothModule.stopCloseTimer();
+        }
+    }
+    Timer {
+        id: batteryHoverTimer
+        interval: root.hoverDelay
+        onTriggered: {
+            batteryModule.visible = true;
+            batteryModule.stopCloseTimer();
+        }
+    }
+    Timer {
+        id: calendarHoverTimer
+        interval: root.hoverDelay
+        onTriggered: {
+            calendarModule.visible = true;
+            calendarModule.stopCloseTimer();
+        }
+    }
+    Timer {
+        id: soundHoverTimer
+        interval: root.hoverDelay
+        onTriggered: {
+            soundModule.visible = true;
+            soundModule.stopCloseTimer();
+        }
+    }
 
     anchors.fill: parent
     anchors.leftMargin: BarConfig.margins
@@ -50,6 +92,12 @@ RowLayout {
     // Spacer to push widgets to the right
     Item {
         Layout.fillWidth: true
+    }
+
+    // Network upload/download speed indicator
+    NetworkSpeedWidget {
+        Layout.alignment: Qt.AlignVCenter
+        fontSize: BarConfig.fontSize - 3
     }
 
     // Network status indicator
@@ -84,16 +132,16 @@ RowLayout {
             anchors.fill: parent
             hoverEnabled: true
             onEntered: {
-                root.hideOtherModals(networksModule)
-                networksHoverTimer.start()
+                root.hideOtherModals(networksModule);
+                networksHoverTimer.start();
             }
             onExited: {
-                networksHoverTimer.stop()
-                networksModule.startCloseTimer()
+                networksHoverTimer.stop();
+                networksModule.startCloseTimer();
             }
             onClicked: {
-                networksHoverTimer.stop()
-                networksModule.visible = !networksModule.visible
+                networksHoverTimer.stop();
+                networksModule.visible = !networksModule.visible;
             }
         }
     }
@@ -117,16 +165,55 @@ RowLayout {
             anchors.fill: parent
             hoverEnabled: true
             onEntered: {
-                root.hideOtherModals(bluetoothModule)
-                bluetoothHoverTimer.start()
+                root.hideOtherModals(bluetoothModule);
+                bluetoothHoverTimer.start();
             }
             onExited: {
-                bluetoothHoverTimer.stop()
-                bluetoothModule.startCloseTimer()
+                bluetoothHoverTimer.stop();
+                bluetoothModule.startCloseTimer();
             }
             onClicked: {
-                bluetoothHoverTimer.stop()
-                bluetoothModule.visible = !bluetoothModule.visible
+                bluetoothHoverTimer.stop();
+                bluetoothModule.visible = !bluetoothModule.visible;
+            }
+        }
+    }
+
+    // Sound indicator
+    Rectangle {
+        Layout.preferredWidth: soundIcon.implicitWidth + BarConfig.margins
+        Layout.preferredHeight: BarConfig.height
+        color: "transparent"
+
+        Text {
+            id: soundIcon
+            property bool isMuted: Audio.isMuted
+            property string icon: {
+                if (isMuted)
+                    return "󰝟";
+                return "󰕾";
+            }
+            text: icon
+            color: Audio.isMuted ? Appearance.colors.secondary : Appearance.colors.text
+            font.family: Appearance.font.family
+            font.pixelSize: BarConfig.fontSize
+            anchors.centerIn: parent
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            onEntered: {
+                root.hideOtherModals(soundModule);
+                soundHoverTimer.start();
+            }
+            onExited: {
+                soundHoverTimer.stop();
+                soundModule.startCloseTimer();
+            }
+            onClicked: {
+                soundHoverTimer.stop();
+                soundModule.visible = !soundModule.visible;
             }
         }
     }
@@ -177,16 +264,16 @@ RowLayout {
             anchors.fill: parent
             hoverEnabled: true
             onEntered: {
-                root.hideOtherModals(batteryModule)
-                batteryHoverTimer.start()
+                root.hideOtherModals(batteryModule);
+                batteryHoverTimer.start();
             }
             onExited: {
-                batteryHoverTimer.stop()
-                batteryModule.startCloseTimer()
+                batteryHoverTimer.stop();
+                batteryModule.startCloseTimer();
             }
             onClicked: {
-                batteryHoverTimer.stop()
-                batteryModule.visible = !batteryModule.visible
+                batteryHoverTimer.stop();
+                batteryModule.visible = !batteryModule.visible;
             }
         }
     }
@@ -208,16 +295,16 @@ RowLayout {
             anchors.fill: parent
             hoverEnabled: true
             onEntered: {
-                root.hideOtherModals(calendarModule)
-                calendarHoverTimer.start()
+                root.hideOtherModals(calendarModule);
+                calendarHoverTimer.start();
             }
             onExited: {
-                calendarHoverTimer.stop()
-                calendarModule.startCloseTimer()
+                calendarHoverTimer.stop();
+                calendarModule.startCloseTimer();
             }
             onClicked: {
-                calendarHoverTimer.stop()
-                calendarModule.visible = !calendarModule.visible
+                calendarHoverTimer.stop();
+                calendarModule.visible = !calendarModule.visible;
             }
         }
     }

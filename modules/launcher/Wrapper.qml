@@ -11,6 +11,7 @@ Window {
     color: "transparent"
 
     property string search: ""
+    signal openNotificationHistory
 
     onVisibleChanged: {
         if (visible) {
@@ -33,6 +34,7 @@ Window {
             search: launcher.search
             onSearchChanged: launcher.search = search
             onRequestClose: launcher.visible = false
+            onOpenNotificationHistory: launcher.openNotificationHistory()
         }
     }
 }

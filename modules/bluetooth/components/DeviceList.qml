@@ -25,7 +25,16 @@ ColumnLayout {
         color: Appearance.colors.surface
         radius: Appearance.rounding.medium
 
-        property var filteredDevices: [...Bluetooth.devices.values].filter(root.deviceFilter)
+        // Use BluetoothStore.mergedDevices so out-of-range paired devices
+        // (loaded from the local JSON) are included alongside live devices.
+        // Also depend on Bluetooth.devices directly so the list re-evaluates
+        // whenever any live device property changes (connect, pair, etc.).
+        property var filteredDevices: {
+            // Explicitly touch Bluetooth.devices to create a reactive dependency
+            // so this re-evaluates on any device-model change.
+            void(Bluetooth.devices)
+            return BluetoothStore.mergedDevices.filter(root.deviceFilter)
+        }
 
         ListView {
             id: deviceList
@@ -34,10 +43,14 @@ ColumnLayout {
             clip: true
             spacing: Appearance.spacing.small
 
-            model: parent.filteredDevices.sort((a, b) => {
-                return (b.connected - a.connected) 
-                    || (b.paired - a.paired) 
-                    || a.name.localeCompare(b.name)
+            model: parent.filteredDevices.slice().sort((a, b) => {
+                // Read through getters (which delegate to _live) so sort order
+                // always reflects current connection/pair state.
+                const aC = a.connected ? 1 : 0
+                const bC = b.connected ? 1 : 0
+                const aP = a.paired    ? 1 : 0
+                const bP = b.paired    ? 1 : 0
+                return (bC - aC) || (bP - aP) || (a.name ?? "").localeCompare(b.name ?? "")
             })
 
             delegate: Loader {

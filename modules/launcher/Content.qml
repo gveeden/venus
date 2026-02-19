@@ -13,6 +13,7 @@ ColumnLayout {
 
     property string search: ""
     signal requestClose
+    signal openNotificationHistory
 
     function focusSearch() {
         input.forceActiveFocus();
@@ -273,6 +274,14 @@ ColumnLayout {
                 });
             }
 
+            // Notification history option
+            if (searchLower !== "" && (searchLower.includes("notif") || searchLower.includes("history"))) {
+                items.push({
+                    type: "notifhistory",
+                    section: ""
+                });
+            }
+
             // Google search option - only if no calc/currency results and no apps found
             if (searchLower !== "" && calcResult === null && !root.currentCurrencyResult && filteredApps.length === 0) {
                 items.push({
@@ -326,7 +335,7 @@ ColumnLayout {
             id: itemLoader
             width: appList.width
             height: modelData.type === "header" ? 30 : LauncherConfig.itemHeight
-            sourceComponent: modelData.type === "header" ? headerComponent : modelData.type === "window" ? windowComponent : modelData.type === "calculator" ? calculatorComponent : modelData.type === "currency" ? currencyComponent : modelData.type === "search" ? searchComponent : appComponent
+            sourceComponent: modelData.type === "header" ? headerComponent : modelData.type === "window" ? windowComponent : modelData.type === "calculator" ? calculatorComponent : modelData.type === "currency" ? currencyComponent : modelData.type === "search" ? searchComponent : modelData.type === "notifhistory" ? notifHistoryComponent : appComponent
 
             property var modelData: model.modelData
             property bool isSelected: ListView.isCurrentItem
@@ -550,6 +559,69 @@ ColumnLayout {
 
                     function launchOrFocus() {
                         root.openBrowser("https://www.google.com/search?q=" + encodeURIComponent(modelData.query));
+                        root.requestClose();
+                        root.clearSearch();
+                    }
+                }
+            }
+
+            Component {
+                id: notifHistoryComponent
+                Rectangle {
+                    color: isSelected ? Qt.rgba(Appearance.colors.primary.r, Appearance.colors.primary.g, Appearance.colors.primary.b, 0.3) : isHovered ? Appearance.colors.hover : "transparent"
+                    border.color: isSelected ? Appearance.colors.primary : "transparent"
+                    border.width: isSelected ? 2 : 0
+                    radius: Appearance.rounding.small
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered: itemLoader.isHovered = true
+                        onExited: itemLoader.isHovered = false
+                        onClicked: {
+                            appList.currentIndex = index;
+                            launchOrFocus();
+                        }
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: Appearance.padding.large
+                        anchors.rightMargin: Appearance.padding.large
+                        spacing: Appearance.spacing.medium
+
+                        Text {
+                            text: ""
+                            color: Appearance.colors.primary
+                            font.pixelSize: 20
+                            font.family: "JetBrainsMono Nerd Font"
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+
+                            Text {
+                                text: "Notification History"
+                                color: Appearance.colors.text
+                                font.pointSize: Appearance.font.regular
+                                font.bold: true
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                text: "View past notifications"
+                                color: Appearance.colors.textSecondary
+                                font.pixelSize: Appearance.font.small
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                        }
+                    }
+
+                    function launchOrFocus() {
+                        root.openNotificationHistory();
                         root.requestClose();
                         root.clearSearch();
                     }

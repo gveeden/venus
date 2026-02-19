@@ -10,3 +10,4 @@ singleton CalendarConfig CalendarConfig.qml
 singleton NotificationConfig NotificationConfig.qml
 singleton SettingsConfig SettingsConfig.qml
 singleton OsdConfig OsdConfig.qml
+singleton SoundConfig SoundConfig.qml

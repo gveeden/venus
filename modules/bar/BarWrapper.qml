@@ -9,6 +9,7 @@ Scope {
     property var networksModule
     property var batteryModule
     property var calendarModule
+    property var soundModule
 
     Variants {
         model: Quickshell.screens
@@ -32,6 +33,7 @@ Scope {
                 networksModule: root.networksModule
                 batteryModule: root.batteryModule
                 calendarModule: root.calendarModule
+                soundModule: root.soundModule
             }
         }
     }
