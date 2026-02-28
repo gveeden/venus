@@ -22,4 +22,5 @@ singleton NetworkSpeed services/NetworkSpeed.qml
 ThemeStorage services/ThemeStorage.qml
 ClockWidget components/widgets/ClockWidget.qml
 NetworkSpeedWidget components/widgets/NetworkSpeedWidget.qml
+SystemTrayWidget components/widgets/SystemTrayWidget.qml
 Button components/controls/Button.qml

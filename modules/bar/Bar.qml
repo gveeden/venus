@@ -1,5 +1,6 @@
 import "../../components/widgets"
 import "../../config"
+import Quickshell
 import Quickshell.Services.UPower
 import QtQuick
 import QtQuick.Layouts
@@ -12,6 +13,7 @@ RowLayout {
     required property var batteryModule
     required property var calendarModule
     required property var soundModule
+    required property PanelWindow trayWindow
 
     property int hoverDelay: 300
 
@@ -92,6 +94,12 @@ RowLayout {
     // Spacer to push widgets to the right
     Item {
         Layout.fillWidth: true
+    }
+
+    // System tray icons
+    SystemTrayWidget {
+        Layout.alignment: Qt.AlignVCenter
+        trayWindow: root.trayWindow
     }
 
     // Network upload/download speed indicator

@@ -24,6 +24,13 @@ Rectangle {
     // Track hover state
     property bool isHovered: false
 
+    // Extract first URL from notification body
+    readonly property string linkUrl: {
+        if (!notification || !notification.body) return ""
+        const match = notification.body.match(/https?:\/\/[^\s<>\"'`]+/)
+        return match ? match[0] : ""
+    }
+
     // Auto-dismiss timer - disabled for now to support notification history
     // Timer {
     //     id: dismissTimer
@@ -142,37 +149,66 @@ Rectangle {
             }
         }
 
-        // Action buttons (shown inline in the ColumnLayout)
+        // Action buttons row
         RowLayout {
             Layout.fillWidth: true
             spacing: Appearance.spacing.small
-            visible: root.notification && root.notification.actions && root.notification.actions.length > 0
+            visible: root.notification && (root.notification.actions.length > 0 || root.linkUrl !== "")
 
-            Repeater {
-                model: root.notification ? root.notification.actions : []
+            // "Open" button — triggers the notification's default action
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 32
+                color: openMouseArea.containsMouse ? Appearance.colors.hover : Appearance.colors.surfaceHighlight
+                radius: Appearance.rounding.small
+                border.color: Appearance.colors.buttonBorder
+                border.width: 1
+                visible: root.notification && root.notification.actions.length > 0
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 32
-                    color: mouseArea.containsMouse ? Appearance.colors.hover : Appearance.colors.surfaceHighlight
-                    radius: Appearance.rounding.small
-                    border.color: Appearance.colors.buttonBorder
-                    border.width: 1
+                Text {
+                    anchors.centerIn: parent
+                    text: "Open"
+                    color: Appearance.colors.text
+                    font.pixelSize: Appearance.font.small
+                    font.bold: true
+                }
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: modelData.text || modelData.identifier
-                        color: Appearance.colors.text
-                        font.pixelSize: Appearance.font.small
+                MouseArea {
+                    id: openMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: {
+                        if (root.notification && root.notification.actions.length > 0)
+                            root.actionClicked(root.notification.actions[0].identifier)
                     }
+                }
+            }
 
-                    MouseArea {
-                        id: mouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: {
-                            root.actionClicked(modelData.identifier);
-                        }
+            // "Go to link" button — opens URL extracted from body
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 32
+                color: linkMouseArea.containsMouse ? Appearance.colors.hover : Appearance.colors.surfaceHighlight
+                radius: Appearance.rounding.small
+                border.color: Appearance.colors.buttonBorder
+                border.width: 1
+                visible: root.linkUrl !== ""
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "Go to link"
+                    color: Appearance.colors.primary
+                    font.pixelSize: Appearance.font.small
+                    font.bold: true
+                }
+
+                MouseArea {
+                    id: linkMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: {
+                        if (root.linkUrl)
+                            Qt.openUrlExternally(root.linkUrl)
                     }
                 }
             }

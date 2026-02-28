@@ -2,3 +2,4 @@ module widgets
 
 ClockWidget ClockWidget.qml
 NetworkSpeedWidget NetworkSpeedWidget.qml
+SystemTrayWidget SystemTrayWidget.qml

@@ -15,6 +15,7 @@ Scope {
         model: Quickshell.screens
 
         PanelWindow {
+            id: barWindow
             required property var modelData
             screen: modelData
             visible: true
@@ -34,6 +35,7 @@ Scope {
                 batteryModule: root.batteryModule
                 calendarModule: root.calendarModule
                 soundModule: root.soundModule
+                trayWindow: barWindow
             }
         }
     }
