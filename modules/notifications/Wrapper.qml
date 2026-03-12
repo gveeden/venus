@@ -192,21 +192,35 @@ Scope {
                 // Merge live notifications + dismissed history into one list.
                 // Live entries come first (most recent action needed), then history.
                 model: {
-                    let live = [...Notifs.notifications].map(n => ({
-                                isLive: true,
-                                liveRef: n,
-                                appName: n.appName || "",
-                                summary: n.summary || "",
-                                body: n.body || "",
-                                isCritical: n.urgency === 2  // NotificationUrgency.Critical
-                                ,
-                                time: ""
-                            }));
-                    let hist = Notifs.history.map(e => ({
-                                isLive: false,
-                                e
-                            }));
-                    return live.concat(hist);
+                    let combined = [];
+                    // Add live notifications
+                    for (let i = 0; i < Notifs.notifications.count; i++) {
+                        let n = Notifs.notifications.get(i);
+                        combined.push({
+                            isLive: true,
+                            liveRef: n,
+                            appName: n.appName || "",
+                            summary: n.summary || "",
+                            body: n.body || "",
+                            isCritical: n.urgency === 2, // NotificationUrgency.Critical
+                            time: ""
+                        });
+                    }
+                    // Add history entries
+                    for (let i = 0; i < Notifs.history.length; i++) {
+                        let e = Notifs.history[i];
+                        let item = { isLive: false };
+                        // Manually copy properties since spread isn't supported
+                        item.appName = e.appName;
+                        item.summary = e.summary;
+                        item.body = e.body;
+                        item.urgency = e.urgency;
+                        item.isCritical = e.isCritical;
+                        item.hasActions = e.hasActions;
+                        item.time = e.time;
+                        combined.push(item);
+                    }
+                    return combined;
                 }
 
                 delegate: Rectangle {

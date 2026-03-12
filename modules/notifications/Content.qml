@@ -31,16 +31,25 @@ Rectangle {
         return match ? match[0] : ""
     }
 
-    // Auto-dismiss timer - disabled for now to support notification history
-    // Timer {
-    //     id: dismissTimer
-    //     interval: root.notification ? NotificationConfig.getTimeout(root.notification.urgency, root.notification.category) : 5000
-    //     running: interval > 0 && !root.isHovered  // Only run if there's a timeout and not hovering
-    //     repeat: false
-    //     onTriggered: {
-    //         root.dismissClicked();
-    //     }
-    // }
+    // Auto-dismiss timer
+    Timer {
+        id: dismissTimer
+        interval: {
+            if (!root.notification) return 5000;
+            
+            // Check potential property names for timeout from sender
+            const timeout = root.notification.expireTimeout || root.notification.timeout || root.notification.expire_timeout;
+            if (timeout && timeout > 0) return timeout;
+            
+            // Otherwise use config-based timeout
+            return NotificationConfig.getTimeout(root.notification.urgency, root.notification.category);
+        }
+        running: interval > 0 && !root.isHovered  // Only run if there's a timeout and not hovering
+        repeat: false
+        onTriggered: {
+            root.dismissClicked();
+        }
+    }
 
     // Click to dismiss
     MouseArea {

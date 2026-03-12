@@ -41,7 +41,10 @@ Singleton {
     // Dismiss all notifications
     function dismissAll(): void {
         if (!notifications) return
-        let toDismiss = [...notifications]
+        let toDismiss = [];
+        for (let i = 0; i < notifications.count; i++) {
+            toDismiss.push(notifications.get(i));
+        }
         for (let notif of toDismiss) {
             if (notif) {
                 _saveToHistory(notif)
@@ -60,11 +63,13 @@ Singleton {
         root.history = []
     }
 
-    // Snapshot a notification into history if it was critical or had actions
+    // Snapshot a notification into history
     function _saveToHistory(notification): void {
+        // Don't save transient notifications to history
+        if (notification.transient) return
+
         const isCritical = (notification.urgency === NotificationUrgency.Critical)
         const hasActions = notification.actions && notification.actions.length > 0
-        if (!isCritical && !hasActions) return
 
         const entry = {
             appName:   notification.appName   || "",
@@ -76,6 +81,10 @@ Singleton {
             time:      new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         }
         // Prepend so newest is at the top
-        root.history = [entry, ...root.history]
+        let newHistory = [entry];
+        for (let i = 0; i < root.history.length; i++) {
+            newHistory.push(root.history[i]);
+        }
+        root.history = newHistory;
     }
 }

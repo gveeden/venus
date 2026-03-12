@@ -23,6 +23,7 @@ Singleton {
 
     // HomeKit MQTT Actions
     function toggleHeadboard() {
+        headboardLoading = true;
         headboardOn = !headboardOn; // Optimistic update
         setCharacteristic(HomeConfig.devices.headboard.id, HomeConfig.devices.headboard.aid, HomeConfig.devices.headboard.powerIid, headboardOn);
     }
@@ -36,10 +37,12 @@ Singleton {
     }
 
     function toggleEntrance() {
+        entranceLoading = true;
         entranceOn = !entranceOn; // Optimistic update
         setCharacteristic(HomeConfig.devices.entrance.id, HomeConfig.devices.entrance.aid, HomeConfig.devices.entrance.powerIid, entranceOn);
     }
     function toggleLivingRoom() {
+        livingRoomLoading = true;
         livingRoomOn = !livingRoomOn; // Optimistic update
         setCharacteristic(HomeConfig.devices.livingroom.id, HomeConfig.devices.livingroom.aid, HomeConfig.devices.livingroom.powerIid, livingRoomOn);
     }
@@ -53,7 +56,7 @@ Singleton {
     }
 
     function publish(topic, value) {
-        // Use a unique client ID for each publication to avoid connection conflicts
+        // Use the original working client ID prefix
         const clientId = "quickshell-pub-" + Math.random().toString(36).substring(7);
         const cmd = [HomeConfig.mosquittoPub, "-h", HomeConfig.mqttHost, "-i", clientId, "-t", topic, "-m", value];
         pubProc.exec(cmd);
@@ -97,7 +100,7 @@ Singleton {
     Process {
         id: subProc
         running: true
-        // Use a persistent unique client ID for the subscription
+        // Restore the original working client ID
         command: [HomeConfig.mosquittoSub, "-h", HomeConfig.mqttHost, "-i", "quickshell-home-sub-v2", "-v", "-t", "felix/homekit/response/#", "-t", "felix/homekit/event/#"]
         stdout: SplitParser {
             onRead: line => {
@@ -119,6 +122,17 @@ Singleton {
 
                     if (type === "response" && topicParts[3] === "get") {
                         if (!currentPoll) return;
+                        
+                        // IMPROVED FIX: Only clear the queue if there is an explicit error.
+                        // This prevents the spam loop without breaking normal responses.
+                        if (data.error) {
+                            if (data.error === "Device undefined not paired") {
+                                pollQueue = []; 
+                            }
+                            currentPoll = null;
+                            return;
+                        }
+
                         deviceId = currentPoll.deviceId;
                         aid = currentPoll.aid;
                         iid = currentPoll.iid;
@@ -127,12 +141,10 @@ Singleton {
                         Qt.callLater(processNextPoll);
                     } else if (type === "response" && topicParts[3] === "set") {
                         // Trust the SET response to update state and clear loading
-                        if (!data.success) {
-                            // Suppress spam for "undefined" device errors which happen during bridge discovery
+                        if (data.success === false || data.error) {
                             if (data.error !== "Device undefined not paired") {
                                 console.error("[HOME] Set failed:", data.error);
                             }
-                            // Reset loading on all to be safe if we don't have ID
                             headboardLoading = false;
                             entranceLoading = false;
                             livingRoomLoading = false;
