@@ -12,18 +12,21 @@ PanelWindow {
     required property int contentMargins
     property int xMargin: 0
     property int yMargin: 0
+    property bool inhibitClose: false
     property alias content: contentLoader.sourceComponent
 
     // Close timer - 2 second delay
     Timer {
         id: closeTimer
         interval: 500
-        onTriggered: root.visible = false
+        onTriggered: {
+            if (!root.inhibitClose) root.visible = false
+        }
     }
 
     // Public functions for timer control
     function startCloseTimer() {
-        closeTimer.start();
+        if (!root.inhibitClose) closeTimer.start();
     }
 
     function stopCloseTimer() {

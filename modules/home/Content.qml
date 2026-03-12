@@ -9,12 +9,17 @@ Item {
     id: root
     Layout.fillWidth: true
     Layout.fillHeight: true
+    
+    signal popupOpened()
+    signal popupClosed()
+    signal detailVisibleChanged(bool visible)
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: Appearance.padding.large
         spacing: Appearance.spacing.large
         visible: !lightDetail.visible
+        onVisibleChanged: root.detailVisibleChanged(!visible)
 
         Text {
             text: "Home"
@@ -58,6 +63,8 @@ Item {
                 onClicked: Home.toggleLivingRoom()
             }
         }
+        
+        Item { Layout.fillHeight: true } // Spacer to keep items at the top
     }
 
     LightDetail {

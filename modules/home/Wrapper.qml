@@ -8,9 +8,12 @@ import "." as HomePrivate
 Scope {
     id: root
     property alias visible: homeWindow.visible
+    
+    // Check if any popup is open to prevent auto-closing
+    property bool isPopupOpen: false
 
     function startCloseTimer() {
-        homeWindow.startCloseTimer()
+        if (!isPopupOpen) homeWindow.startCloseTimer()
     }
 
     function stopCloseTimer() {
@@ -19,14 +22,19 @@ Scope {
 
     DropdownWindow {
         id: homeWindow
-        windowWidth: 350
-        windowHeight: 300
+        inhibitClose: root.isPopupOpen
+        windowWidth: 380
+        windowHeight: root.isPopupOpen ? 600 : (lightDetailVisible ? 550 : 350)
         topMargin: BarConfig.height
         rightMargin: 10
         contentMargins: 10
-        xMargin: 10
-        yMargin: 10
+        
+        property bool lightDetailVisible: false
 
-        content: HomePrivate.Content {}
+        content: HomePrivate.Content {
+            onPopupOpened: root.isPopupOpen = true
+            onPopupClosed: root.isPopupOpen = false
+            onDetailVisibleChanged: visible => homeWindow.lightDetailVisible = visible
+        }
     }
 }

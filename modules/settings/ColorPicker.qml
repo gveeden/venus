@@ -11,6 +11,11 @@ RowLayout {
     property string label: ""
     property color colorValue: "#000000"
     signal colorChanged(color newColor)
+    
+    // Allow external tracking of the popup
+    readonly property bool isOpened: colorPickerPopup.opened
+    signal opened()
+    signal closed()
 
     // Store slider values as properties so they persist
     property int rValue: Math.round(root.colorValue.r * 255)
@@ -114,6 +119,9 @@ RowLayout {
         // Center in parent
         x: Math.round((parent.width - width) / 2)
         y: Math.round((parent.height - height) / 2)
+
+        onAboutToHide: root.closed()
+        onAboutToShow: root.opened()
 
         background: Rectangle {
             color: Appearance.colors.surface

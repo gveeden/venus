@@ -23,8 +23,9 @@ Scope {
         windowHeight: CalendarConfig.windowHeight
         topMargin: CalendarConfig.topMargin
         rightMargin: CalendarConfig.rightMargin
-        xMargin: CalendarConfig.xMargin
-        yMargin: CalendarConfig.yMargin
+        contentMargins: CalendarConfig.contentMargins
+        xMargin: 10
+        yMargin: 10
 
         content: CalendarPrivate.Content {}
     }
