@@ -11,7 +11,7 @@ qmlscene -l shell.qml
 # View logs (do NOT kill quickshell)
 quickshell --config ~/.config/quickshell/venus log
 
-# Restart quickshell after changes
+# Restart quickshell
 quickshell --config ~/.config/quickshell/venus restart
 ```
 
@@ -194,6 +194,7 @@ Text {
 8. **Wrapper pattern** - separate window management from content
 9. **Test frequently** - run `qmlscene -l shell.qml` to check syntax
 10. **Use config values** - never hardcode colors/sizes, use `Appearance.*`
+11. Always check the logs after a change
 
 ## Quick Reference
 

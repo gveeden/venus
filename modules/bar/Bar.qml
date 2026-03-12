@@ -13,6 +13,7 @@ RowLayout {
     required property var batteryModule
     required property var calendarModule
     required property var soundModule
+    required property var homeModule
     required property PanelWindow trayWindow
 
     property int hoverDelay: 300
@@ -42,6 +43,11 @@ RowLayout {
             soundHoverTimer.stop();
             soundModule.stopCloseTimer();
             soundModule.visible = false;
+        }
+        if (exceptModule !== homeModule) {
+            homeHoverTimer.stop();
+            homeModule.stopCloseTimer();
+            homeModule.visible = false;
         }
     }
 
@@ -83,6 +89,14 @@ RowLayout {
         onTriggered: {
             soundModule.visible = true;
             soundModule.stopCloseTimer();
+        }
+    }
+    Timer {
+        id: homeHoverTimer
+        interval: root.hoverDelay
+        onTriggered: {
+            homeModule.visible = true;
+            homeModule.stopCloseTimer();
         }
     }
 
@@ -226,6 +240,39 @@ RowLayout {
         }
     }
 
+    // Home status indicator
+    Rectangle {
+        Layout.preferredWidth: homeIcon.implicitWidth + BarConfig.margins
+        Layout.preferredHeight: BarConfig.height
+        color: "transparent"
+
+        Text {
+            id: homeIcon
+            text: "󱠄"
+            color: Home.hasActiveLights ? Appearance.colors.primary : Appearance.colors.textTertiary
+            font.family: Appearance.font.family
+            font.pixelSize: BarConfig.fontSize
+            anchors.centerIn: parent
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            onEntered: {
+                root.hideOtherModals(homeModule);
+                homeHoverTimer.start();
+            }
+            onExited: {
+                homeHoverTimer.stop();
+                homeModule.startCloseTimer();
+            }
+            onClicked: {
+                homeHoverTimer.stop();
+                homeModule.visible = !homeModule.visible;
+            }
+        }
+    }
+
     // Battery indicator
     Rectangle {
         Layout.preferredWidth: batteryText.implicitWidth + BarConfig.margins
@@ -238,21 +285,23 @@ RowLayout {
             property string batteryIcon: {
                 if (!UPower.displayDevice)
                     return "󰂑";
-                if (UPower.onBattery) {
-                    if (batteryPercent >= 90)
-                        return "󰁹";
-                    if (batteryPercent >= 70)
-                        return "󰂀";
-                    if (batteryPercent >= 50)
-                        return "󰁾";
-                    if (batteryPercent >= 30)
-                        return "󰁼";
-                    if (batteryPercent >= 10)
-                        return "󰁺";
-                    return "󰂎";
-                } else {
+                const state = UPower.displayDevice.state;
+                if (state === UPowerDeviceState.Charging || state === UPowerDeviceState.PendingCharge)
                     return "󰂄";  // Charging icon
-                }
+                if (state === UPowerDeviceState.FullyCharged)
+                    return "󰁹";  // Full icon
+                // Discharging / PendingDischarge / Unknown
+                if (batteryPercent >= 90)
+                    return "󰁹";
+                if (batteryPercent >= 70)
+                    return "󰂀";
+                if (batteryPercent >= 50)
+                    return "󰁾";
+                if (batteryPercent >= 30)
+                    return "󰁼";
+                if (batteryPercent >= 10)
+                    return "󰁺";
+                return "󰂎";
             }
 
             text: batteryIcon + " " + (UPower.displayDevice ? `${batteryPercent}%` : "No battery")

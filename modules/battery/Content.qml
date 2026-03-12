@@ -53,11 +53,25 @@ ColumnLayout {
                 text: {
                     if (!UPower.displayDevice)
                         return "";
-                    if (UPower.onBattery)
-                        return "󱊣 Discharging";
-                    return "󱊦 Charging";
+                    const state = UPower.displayDevice.state;
+                    if (state === UPowerDeviceState.Charging)
+                        return "󱊦 Charging";
+                    if (state === UPowerDeviceState.FullyCharged)
+                        return "󱊣 Full";
+                    if (state === UPowerDeviceState.PendingCharge)
+                        return "󱊦 Pending Charge";
+                    if (state === UPowerDeviceState.PendingDischarge)
+                        return "󱊣 Pending Discharge";
+                    return "󱊣 Discharging";
                 }
-                color: UPower.onBattery ? Appearance.colors.secondary : Appearance.colors.primary
+                color: {
+                    if (!UPower.displayDevice)
+                        return Appearance.colors.primary;
+                    const state = UPower.displayDevice.state;
+                    if (state === UPowerDeviceState.Charging || state === UPowerDeviceState.FullyCharged || state === UPowerDeviceState.PendingCharge)
+                        return Appearance.colors.primary;
+                    return Appearance.colors.secondary;
+                }
                 font.pixelSize: Appearance.font.medium
             }
         }

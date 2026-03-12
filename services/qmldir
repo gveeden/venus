@@ -9,4 +9,5 @@ singleton Audio Audio.qml
 singleton BluetoothStore BluetoothStore.qml
 singleton NetworkSpeed NetworkSpeed.qml
 singleton Brightness Brightness.qml
+singleton Home Home.qml
 ThemeStorage ThemeStorage.qml

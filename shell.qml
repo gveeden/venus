@@ -13,6 +13,7 @@ import "./modules/calendar" as CalendarModule
 import "./modules/settings" as SettingsModule
 import "./modules/osd" as OsdModule
 import "./modules/sound" as SoundModule
+import "./modules/home" as HomeModule
 import "./services"
 
 ShellRoot {
@@ -48,6 +49,12 @@ ShellRoot {
         id: soundModule
     }
 
+    // Home module (needs to be before bar)
+    HomeModule.Wrapper {
+        id: homeModule
+        visible: false
+    }
+
     // Modules
     Bar.BarWrapper {
         id: barModule
@@ -56,6 +63,7 @@ ShellRoot {
         batteryModule: batteryModule
         calendarModule: calendarModule
         soundModule: soundModule
+        homeModule: homeModule
     }
 
     Launcher.Wrapper {
