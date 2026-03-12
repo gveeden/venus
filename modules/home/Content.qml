@@ -79,5 +79,9 @@ Item {
         onPowerToggled: Home.toggleHeadboard()
         onBrightnessRequested: value => Home.setHeadboardBrightness(value)
         onColorRequested: value => Home.setHeadboardColor(value)
+        
+        // Handle popup state to inhibit auto-close
+        onPopupOpened: root.popupOpened()
+        onPopupClosed: root.popupClosed()
     }
 }

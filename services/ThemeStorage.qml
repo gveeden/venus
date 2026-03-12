@@ -11,6 +11,8 @@ Item {
 
         var data = {
             currentTheme: Appearance.currentTheme,
+            colorPresets: Appearance.colorPresets,
+            pinnedColors: Appearance.pinnedColors,
             colors: {
                 background: Appearance.colors.background.toString(),
                 surface: Appearance.colors.surface.toString(),
@@ -55,6 +57,16 @@ Item {
                 if (data.currentTheme) {
                     Appearance.currentTheme = data.currentTheme;
                     console.log("ThemeStorage: Loaded theme:", data.currentTheme);
+                }
+
+                // Apply custom colors and presets
+                if (data.colorPresets) {
+                    Appearance.colorPresets = data.colorPresets;
+                    console.log("ThemeStorage: Loaded color presets");
+                }
+                if (data.pinnedColors) {
+                    Appearance.pinnedColors = data.pinnedColors;
+                    console.log("ThemeStorage: Loaded pinned light colors");
                 }
 
                 // Apply colors

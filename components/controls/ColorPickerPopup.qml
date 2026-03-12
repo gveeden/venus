@@ -228,14 +228,7 @@ Popup {
             columnSpacing: 4
             rowSpacing: 4
             Repeater {
-                model: [
-                    "#ff6b6b", "#f06595", "#cc5de8", "#845ef7",
-                    "#5c7cfa", "#339af0", "#22b8cf", "#20c997",
-                    "#51cf66", "#94d82d", "#fcc419", "#ff922b",
-                    "#ff8787", "#e64980", "#be4bdb", "#7950f2",
-                    "#4c6ef5", "#228be6", "#15aabf", "#12b886",
-                    "#40c057", "#82c91e", "#fab005", "#fd7e14"
-                ]
+                model: Appearance.colorPresets
                 delegate: Rectangle {
                     width: 28; height: 28; radius: 4
                     color: modelData
@@ -258,6 +251,24 @@ Popup {
             Layout.fillWidth: true
             spacing: 10
             Item { Layout.fillWidth: true }
+            Rectangle {
+                width: 70; height: 32; radius: 4
+                color: Appearance.colors.surfaceHighlight
+                Text { text: "Pin"; color: Appearance.colors.text; font.pixelSize: 13; anchors.centerIn: parent }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        var newColor = Qt.rgba(root.rValue / 255, root.gValue / 255, root.bValue / 255, 1).toString().substring(0, 7)
+                        var current = Appearance.pinnedColors
+                        if (current.indexOf(newColor) === -1) {
+                            Appearance.pinnedColors = [...current, newColor]
+                            if (typeof themeStorage !== 'undefined') {
+                                themeStorage.save()
+                            }
+                        }
+                    }
+                }
+            }
             Rectangle {
                 width: 70; height: 32; radius: 4
                 color: Appearance.colors.surfaceHighlight

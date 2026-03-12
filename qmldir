@@ -22,6 +22,7 @@ singleton NetworkSpeed services/NetworkSpeed.qml
 singleton Home services/Home.qml
 
 ThemeStorage services/ThemeStorage.qml
+ColorPickerPopup components/controls/ColorPickerPopup.qml
 ClockWidget components/widgets/ClockWidget.qml
 NetworkSpeedWidget components/widgets/NetworkSpeedWidget.qml
 SystemTrayWidget components/widgets/SystemTrayWidget.qml

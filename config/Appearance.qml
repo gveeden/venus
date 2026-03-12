@@ -5,8 +5,19 @@ import QtQuick
 QtObject {
     property string currentTheme: "catppuccin"
 
+    property var colorPresets: [
+        "#ff6b6b", "#f06595", "#cc5de8", "#845ef7",
+        "#5c7cfa", "#339af0", "#22b8cf", "#20c997",
+        "#51cf66", "#94d82d", "#fcc419", "#ff922b",
+        "#ff8787", "#e64980", "#be4bdb", "#7950f2",
+        "#4c6ef5", "#228be6", "#15aabf", "#12b886",
+        "#40c057", "#82c91e", "#fab005", "#fd7e14"
+    ]
+
+    property var pinnedColors: ["#ffffff", "#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff"]
+
     function saveSettings() {
-    // Will be called from ThemeTab when settings change
+        // This is a placeholder that can be connected to or checked
     }
 
     property QtObject colors: QtObject {

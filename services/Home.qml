@@ -10,7 +10,9 @@ Singleton {
     // States
     property bool headboardOn: false
     property int headboardBrightness: 100
-    property string headboardColor: "#ffffff"
+    property int headboardHue: 0
+    property int headboardSaturation: 0
+    readonly property string headboardColor: Qt.hsva(headboardHue/360, headboardSaturation/100, 1.0, 1.0).toString()
     property bool headboardLoading: false
 
     property bool entranceOn: false
@@ -31,9 +33,27 @@ Singleton {
         headboardBrightness = value; // Optimistic update
         setCharacteristic(HomeConfig.devices.headboard.id, HomeConfig.devices.headboard.aid, HomeConfig.devices.headboard.brightnessIid, value);
     }
+    
     function setHeadboardColor(value) {
-        headboardColor = value; // Optimistic update
-        setCharacteristic(HomeConfig.devices.headboard.id, HomeConfig.devices.headboard.aid, HomeConfig.devices.headboard.colorIid, value);
+        const c = Qt.color(value);
+        let hue = Math.round(c.hsvHue * 360);
+        if (hue < 0) hue = 0;
+        
+        let saturation = Math.round(c.hsvSaturation * 100);
+        
+        // Handle achromatic colors (white/grey/black)
+        if (c.hsvSaturation === 0) {
+            hue = 0;
+            saturation = 0;
+        }
+
+        // Optimistic update
+        headboardHue = hue;
+        headboardSaturation = saturation;
+        
+        // Set both Hue and Saturation sequentially via the publish queue
+        setCharacteristic(HomeConfig.devices.headboard.id, HomeConfig.devices.headboard.aid, HomeConfig.devices.headboard.colorIid, hue);
+        setCharacteristic(HomeConfig.devices.headboard.id, HomeConfig.devices.headboard.aid, 54, saturation);
     }
 
     function toggleEntrance() {
@@ -51,19 +71,39 @@ Singleton {
         const val = (typeof value === 'boolean') ? (value ? 1 : 0) : value;
         const payload = JSON.stringify({ deviceId, aid, iid, "value": val });
         publish(HomeConfig.commandTopic, payload);
-        
-        // No immediate poll needed - we will trust the 'response/set' message
     }
 
+    // MQTT Publish Queue to prevent process collisions
+    property var publishQueue: []
+    property bool isPublishing: false
+
     function publish(topic, value) {
-        // Use the original working client ID prefix
+        publishQueue.push({ topic: topic, value: value });
+        if (!isPublishing) {
+            processPublishQueue();
+        }
+    }
+
+    function processPublishQueue() {
+        if (publishQueue.length === 0) {
+            isPublishing = false;
+            return;
+        }
+
+        isPublishing = true;
+        const next = publishQueue.shift();
         const clientId = "quickshell-pub-" + Math.random().toString(36).substring(7);
-        const cmd = [HomeConfig.mosquittoPub, "-h", HomeConfig.mqttHost, "-i", clientId, "-t", topic, "-m", value];
+        const cmd = [HomeConfig.mosquittoPub, "-h", HomeConfig.mqttHost, "-i", clientId, "-t", next.topic, "-m", next.value];
+        
         pubProc.exec(cmd);
     }
 
     Process {
         id: pubProc
+        onExited: code => {
+            // Process next message after the current one finishes
+            root.processPublishQueue();
+        }
     }
 
     property var pollQueue: []
@@ -82,6 +122,10 @@ Singleton {
                     const device = HomeConfig.devices[key];
                     pollQueue.push({ deviceId: device.id, aid: device.aid, iid: device.powerIid });
                     if (device.brightnessIid) pollQueue.push({ deviceId: device.id, aid: device.aid, iid: device.brightnessIid });
+                    if (device.colorIid) {
+                        pollQueue.push({ deviceId: device.id, aid: device.aid, iid: device.colorIid });
+                        pollQueue.push({ deviceId: device.id, aid: device.aid, iid: 54 }); // Saturation
+                    }
                 });
             }
             processNextPoll();
@@ -123,8 +167,6 @@ Singleton {
                     if (type === "response" && topicParts[3] === "get") {
                         if (!currentPoll) return;
                         
-                        // IMPROVED FIX: Only clear the queue if there is an explicit error.
-                        // This prevents the spam loop without breaking normal responses.
                         if (data.error) {
                             if (data.error === "Device undefined not paired") {
                                 pollQueue = []; 
@@ -140,7 +182,6 @@ Singleton {
                         currentPoll = null;
                         Qt.callLater(processNextPoll);
                     } else if (type === "response" && topicParts[3] === "set") {
-                        // Trust the SET response to update state and clear loading
                         if (data.success === false || data.error) {
                             if (data.error !== "Device undefined not paired") {
                                 console.error("[HOME] Set failed:", data.error);
@@ -169,7 +210,8 @@ Singleton {
                             headboardLoading = false;
                         }
                         else if (iid === HomeConfig.devices.headboard.brightnessIid) headboardBrightness = value;
-                        else if (iid === HomeConfig.devices.headboard.colorIid) headboardColor = value;
+                        else if (iid === HomeConfig.devices.headboard.colorIid) headboardHue = value;
+                        else if (iid === 54) headboardSaturation = value;
                     } else if (deviceId === HomeConfig.devices.entrance.id) {
                         if (iid === HomeConfig.devices.entrance.powerIid) {
                             entranceOn = (value == 1 || value === true);
