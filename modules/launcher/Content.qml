@@ -64,6 +64,12 @@ ColumnLayout {
         browserProcess.running = true;
     }
 
+    function runInTerminal(cmd) {
+        let proc = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
+        proc.command = ["kitty", "--detach", "sh", "-c", cmd];
+        proc.running = true;
+    }
+
     // Track running windows
     property var runningWindows: []
     property bool windowsLoaded: false
@@ -282,8 +288,14 @@ ColumnLayout {
                 });
             }
 
-            // Google search option - only if no calc/currency results and no apps found
+            // Terminal and Google search options - only if no calc/currency results and no apps found
             if (searchLower !== "" && calcResult === null && !root.currentCurrencyResult && filteredApps.length === 0) {
+                items.push({
+                    type: "terminal",
+                    command: root.search,
+                    section: ""
+                });
+
                 items.push({
                     type: "search",
                     query: root.search,
@@ -335,7 +347,7 @@ ColumnLayout {
             id: itemLoader
             width: appList.width
             height: modelData.type === "header" ? 30 : LauncherConfig.itemHeight
-            sourceComponent: modelData.type === "header" ? headerComponent : modelData.type === "window" ? windowComponent : modelData.type === "calculator" ? calculatorComponent : modelData.type === "currency" ? currencyComponent : modelData.type === "search" ? searchComponent : modelData.type === "notifhistory" ? notifHistoryComponent : appComponent
+            sourceComponent: modelData.type === "header" ? headerComponent : modelData.type === "window" ? windowComponent : modelData.type === "calculator" ? calculatorComponent : modelData.type === "currency" ? currencyComponent : modelData.type === "terminal" ? terminalComponent : modelData.type === "search" ? searchComponent : modelData.type === "notifhistory" ? notifHistoryComponent : appComponent
 
             property var modelData: model.modelData
             property bool isSelected: ListView.isCurrentItem
@@ -361,6 +373,68 @@ ColumnLayout {
             }
 
             Component {
+                id: terminalComponent
+                Rectangle {
+                    color: isSelected ? Qt.rgba(Appearance.colors.primary.r, Appearance.colors.primary.g, Appearance.colors.primary.b, 0.3) : isHovered ? Appearance.colors.hover : "transparent"
+                    border.color: isSelected ? Appearance.colors.primary : "transparent"
+                    border.width: isSelected ? 2 : 0
+                    radius: Appearance.rounding.small
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered: itemLoader.isHovered = true
+                        onExited: itemLoader.isHovered = false
+                        onClicked: {
+                            appList.currentIndex = index;
+                            launchOrFocus();
+                        }
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: Appearance.padding.large
+                        anchors.rightMargin: Appearance.padding.large
+                        spacing: Appearance.spacing.medium
+
+                        Text {
+                            text: ""
+                            color: Appearance.colors.primary
+                            font.pixelSize: 24
+                            font.family: "JetBrainsMono Nerd Font"
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+
+                            Text {
+                                text: "Run \"" + modelData.command + "\" in terminal"
+                                color: Appearance.colors.text
+                                font.pointSize: Appearance.font.regular
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                text: "Launch in background"
+                                color: Appearance.colors.textSecondary
+                                font.pixelSize: Appearance.font.small
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                        }
+                    }
+
+                    function launchOrFocus() {
+                        root.runInTerminal(modelData.command);
+                        root.requestClose();
+                        root.clearSearch();
+                    }
+                }
+            }
+
+            Component {
                 id: calculatorComponent
                 Rectangle {
                     color: isSelected ? Qt.rgba(Appearance.colors.primary.r, Appearance.colors.primary.g, Appearance.colors.primary.b, 0.3) : isHovered ? Appearance.colors.hover : "transparent"
@@ -377,6 +451,7 @@ ColumnLayout {
                             appList.currentIndex = index;
                             root.copyToClipboard(modelData.result.toString());
                             root.requestClose();
+                            root.clearSearch();
                         }
                     }
 

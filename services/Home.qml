@@ -21,7 +21,10 @@ Singleton {
     property bool livingRoomOn: false
     property bool livingRoomLoading: false
 
-    readonly property bool hasActiveLights: headboardOn || entranceOn || livingRoomOn
+    property bool kitchenOn: false
+    property bool kitchenLoading: false
+
+    readonly property bool hasActiveLights: headboardOn || entranceOn || livingRoomOn || kitchenOn
 
     // HomeKit MQTT Actions
     function toggleHeadboard() {
@@ -66,11 +69,36 @@ Singleton {
         livingRoomOn = !livingRoomOn; // Optimistic update
         setCharacteristic(HomeConfig.devices.livingroom.id, HomeConfig.devices.livingroom.aid, HomeConfig.devices.livingroom.powerIid, livingRoomOn);
     }
+    function toggleKitchen() {
+        kitchenOn = !kitchenOn; // Optimistic update
+        setCharacteristic(HomeConfig.devices.kitchen.id, HomeConfig.devices.kitchen.aid, HomeConfig.devices.kitchen.powerIid, kitchenOn);
+    }
 
     function setCharacteristic(deviceId, aid, iid, value) {
-        const val = (typeof value === 'boolean') ? (value ? 1 : 0) : value;
-        const payload = JSON.stringify({ deviceId, aid, iid, "value": val });
-        publish(HomeConfig.commandTopic, payload);
+        // Find the device configuration
+        let device = null;
+        Object.keys(HomeConfig.devices).forEach(key => {
+            if (HomeConfig.devices[key].id === deviceId) {
+                device = HomeConfig.devices[key];
+            }
+        });
+
+        if (device && device.driver === "tcp") {
+            // Use simplified API for TCP devices
+            let charName = "On";
+            if (iid === device.brightnessIid) charName = "Brightness";
+            else if (iid === device.colorIid) charName = "Hue";
+            else if (iid === 54) charName = "Saturation";
+            
+            const topic = `felix/homekit/${device.name}/set/${charName}`;
+            const payload = (typeof value === 'boolean') ? (value ? "true" : "false") : value.toString();
+            publish(topic, payload);
+        } else {
+            // Standard HomeKit command
+            const val = (typeof value === 'boolean') ? (value ? 1 : 0) : value;
+            const payload = JSON.stringify({ deviceId, aid, iid, "value": val });
+            publish(HomeConfig.commandTopic, payload);
+        }
     }
 
     // MQTT Publish Queue to prevent process collisions
@@ -120,6 +148,8 @@ Singleton {
             if (pollQueue.length === 0) {
                 Object.keys(HomeConfig.devices).forEach(key => {
                     const device = HomeConfig.devices[key];
+                    if (device.driver === "tcp") return; // Skip TCP devices for standard polling
+                    
                     pollQueue.push({ deviceId: device.id, aid: device.aid, iid: device.powerIid });
                     if (device.brightnessIid) pollQueue.push({ deviceId: device.id, aid: device.aid, iid: device.brightnessIid });
                     if (device.colorIid) {
@@ -221,6 +251,11 @@ Singleton {
                         if (iid === HomeConfig.devices.livingroom.powerIid) {
                             livingRoomOn = (value == 1 || value === true);
                             livingRoomLoading = false;
+                        }
+                    } else if (deviceId === HomeConfig.devices.kitchen.id) {
+                        if (iid === HomeConfig.devices.kitchen.powerIid) {
+                            kitchenOn = (value == 1 || value === true);
+                            kitchenLoading = false;
                         }
                     }
                 } catch (e) {

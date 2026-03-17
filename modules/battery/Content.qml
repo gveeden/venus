@@ -6,13 +6,14 @@ import Quickshell.Bluetooth
 import QtQuick
 import QtQuick.Layouts
 
-ColumnLayout {
-    anchors.fill: parent
-    anchors.margins: Appearance.padding.xlarge
-    spacing: Appearance.spacing.medium
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: Appearance.padding.xlarge
+        spacing: Appearance.spacing.medium
+        Layout.alignment: Qt.AlignTop
 
-    // Header
-    Text {
+        // Header
+        Text {
         text: "Battery Status"
         color: Appearance.colors.text
         font.pixelSize: Appearance.font.xlarge
@@ -30,6 +31,7 @@ ColumnLayout {
     ColumnLayout {
         Layout.fillWidth: true
         spacing: Appearance.spacing.small
+        Layout.alignment: Qt.AlignTop // Ensure it stays at the top
 
         Text {
             text: "Main Battery"
@@ -111,13 +113,15 @@ ColumnLayout {
         Layout.fillWidth: true
         height: 1
         color: Appearance.colors.border
+        visible: false // Hidden as per request to remove bluetooth section
     }
 
     // Bluetooth devices section
     ColumnLayout {
         Layout.fillWidth: true
-        Layout.fillHeight: true
+        Layout.fillHeight: false // Don't fill height so everything stays at the top
         spacing: Appearance.spacing.small
+        visible: false // Hidden as per request to remove bluetooth section
 
         Text {
             text: "Bluetooth Devices"
@@ -209,15 +213,15 @@ ColumnLayout {
                 Text {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignHCenter
-                    text: "No paired bluetooth devices"
-                    color: Appearance.colors.textTertiary
-                    font.pixelSize: Appearance.font.medium
-                    visible: !hasPairedDevices()
-                    horizontalAlignment: Text.AlignHCenter
                 }
             }
         }
     }
+
+    Item {
+        Layout.fillHeight: true // Push everything up
+    }
+
     function getBatteryIcon(level) {
         if (level >= 0.9)
             return "󰁹";

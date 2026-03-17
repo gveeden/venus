@@ -20,10 +20,12 @@ singleton Audio services/Audio.qml
 singleton BluetoothStore services/BluetoothStore.qml
 singleton NetworkSpeed services/NetworkSpeed.qml
 singleton Home services/Home.qml
+singleton Memory services/Memory.qml
 
 ThemeStorage services/ThemeStorage.qml
 ColorPickerPopup components/controls/ColorPickerPopup.qml
 ClockWidget components/widgets/ClockWidget.qml
 NetworkSpeedWidget components/widgets/NetworkSpeedWidget.qml
+MemoryWidget components/widgets/MemoryWidget.qml
 SystemTrayWidget components/widgets/SystemTrayWidget.qml
 Button components/controls/Button.qml

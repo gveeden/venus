@@ -15,6 +15,11 @@ Singleton {
     readonly property string uploadStr:   _formatSpeed(_uploadSpeed)
     readonly property string downloadStr: _formatSpeed(_downloadSpeed)
 
+    property var topApps: []
+    property string _topAppsOutput: ""
+    property var _prevAppStats: ({})
+    property real _prevAppTime: 0
+
     property real _uploadSpeed:   0
     property real _downloadSpeed: 0
 
@@ -30,7 +35,7 @@ Singleton {
         return Math.round(bps) + " B/s"
     }
 
-    // Read /proc/net/dev on an interval
+    // Process for overall network stats
     Process {
         id: proc
         command: ["cat", "/proc/net/dev"]
@@ -43,6 +48,84 @@ Singleton {
         onExited: function(exitCode, exitStatus) {
             root._parseNetDev(root._netDevOutput)
             root._netDevOutput = ""
+        }
+    }
+
+    // Process for top network apps using ss -tinup to get cumulative bytes
+    Process {
+        id: topProc
+        command: ["sh", "-c", "ss -tinup state established | grep -A 1 \"users:(\""]
+        running: false
+        stdout: SplitParser {
+            onRead: text => {
+                root._topAppsOutput += text + "\n";
+            }
+        }
+        onExited: (code) => {
+            const now = Date.now() / 1000.0;
+            const dt = root._prevAppTime > 0 ? (now - root._prevAppTime) : 1.0;
+            root._prevAppTime = now;
+            
+            const lines = root._topAppsOutput.split("\n");
+            const currentStats = {}; // By connection ID
+            const appAggr = {}; // By app name
+            
+            for (let i = 0; i < lines.length - 1; i++) {
+                const line = lines[i].trim();
+                if (line.includes("users:(")) {
+                    // Get connection ID (addresses)
+                    const parts = line.split(/\s+/);
+                    if (parts.length < 5) continue;
+                    const connId = parts[3] + "-" + parts[4];
+                    
+                    // Get process name
+                    const match = line.match(/users:\(\(\"([^\"]+)\"/);
+                    if (match) {
+                        const name = match[1];
+                        const nextLine = lines[i+1];
+                        if (!nextLine) continue;
+                        
+                        // Extract bytes_sent/bytes_received
+                        const txMatch = nextLine.match(/bytes_sent:(\d+)/);
+                        const rxMatch = nextLine.match(/bytes_received:(\d+)/);
+                        
+                        if (txMatch && rxMatch) {
+                            const tx = parseInt(txMatch[1]);
+                            const rx = parseInt(rxMatch[1]);
+                            
+                            currentStats[connId] = { name: name, tx: tx, rx: rx };
+                            
+                            if (root._prevAppStats[connId]) {
+                                const prev = root._prevAppStats[connId];
+                                if (prev.name === name) {
+                                    const txDelta = tx - prev.tx;
+                                    const rxDelta = rx - prev.rx;
+                                    
+                                    if (txDelta >= 0 && rxDelta >= 0) {
+                                        if (!appAggr[name]) appAggr[name] = { up: 0, down: 0 };
+                                        appAggr[name].up += txDelta / dt;
+                                        appAggr[name].down += rxDelta / dt;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            root._prevAppStats = currentStats;
+            
+            const apps = Object.keys(appAggr).map(name => ({
+                name: name,
+                up: root._formatSpeed(appAggr[name].up),
+                down: root._formatSpeed(appAggr[name].down),
+                rawUp: appAggr[name].up,
+                rawDown: appAggr[name].down,
+                total: appAggr[name].up + appAggr[name].down
+            })).sort((a, b) => b.total - a.total).filter(a => a.total > 0).slice(0, 5);
+            
+            root.topApps = apps;
+            root._topAppsOutput = "";
         }
     }
 
@@ -107,6 +190,7 @@ Singleton {
         onTriggered: {
             root._netDevOutput = ""
             proc.running = true
+            topProc.running = true
         }
     }
 }

@@ -14,6 +14,7 @@ import "./modules/settings" as SettingsModule
 import "./modules/osd" as OsdModule
 import "./modules/sound" as SoundModule
 import "./modules/home" as HomeModule
+import "./modules/memory" as MemoryModule
 import "./services"
 
 ShellRoot {
@@ -22,6 +23,15 @@ ShellRoot {
     // Theme storage - using FileView for persistence
     ThemeStorage {
         id: themeStorage
+    }
+
+    BarOrderStorage {
+        id: barOrderStorage
+    }
+
+    // Memory module
+    MemoryModule.Wrapper {
+        id: memoryModule
     }
 
     // Bluetooth module (needs to be before bar)
@@ -64,6 +74,7 @@ ShellRoot {
         calendarModule: calendarModule
         soundModule: soundModule
         homeModule: homeModule
+        memoryModule: memoryModule
     }
 
     Launcher.Wrapper {

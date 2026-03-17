@@ -20,13 +20,15 @@ PanelWindow {
         id: closeTimer
         interval: 500
         onTriggered: {
-            if (!root.inhibitClose) root.visible = false
+            if (!root.inhibitClose)
+                root.visible = false;
         }
     }
 
     // Public functions for timer control
     function startCloseTimer() {
-        if (!root.inhibitClose) closeTimer.start();
+        if (!root.inhibitClose)
+            closeTimer.start();
     }
 
     function stopCloseTimer() {
@@ -52,8 +54,10 @@ PanelWindow {
     // HoverHandler to detect hover over window (doesn't block child events)
     HoverHandler {
         onHoveredChanged: {
-            if (hovered) root.stopCloseTimer()
-            else root.startCloseTimer()
+            if (hovered)
+                root.stopCloseTimer();
+            else
+                root.startCloseTimer();
         }
     }
 

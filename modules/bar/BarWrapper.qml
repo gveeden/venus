@@ -11,6 +11,7 @@ Scope {
     property var calendarModule
     property var soundModule
     property var homeModule
+    property var memoryModule
 
     Variants {
         model: Quickshell.screens
@@ -37,6 +38,7 @@ Scope {
                 calendarModule: root.calendarModule
                 soundModule: root.soundModule
                 homeModule: root.homeModule
+                memoryModule: root.memoryModule
                 trayWindow: barWindow
             }
         }

@@ -62,6 +62,15 @@ Item {
                 isLoading: Home.livingRoomLoading
                 onClicked: Home.toggleLivingRoom()
             }
+
+            HomeTile {
+                icon: "󱠄"
+                title: "Kitchen"
+                subtitle: Home.kitchenOn ? "On" : "Off"
+                isOn: Home.kitchenOn
+                isLoading: Home.kitchenLoading
+                onClicked: Home.toggleKitchen()
+            }
         }
         
         Item { Layout.fillHeight: true } // Spacer to keep items at the top

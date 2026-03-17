@@ -26,6 +26,13 @@ QtObject {
                 "id": "B5:30:8A:03:B8:5A",
                 "aid": 1,
                 "powerIid": 51
+            },
+            "kitchen": {
+                "id": "E8CA504010B7",
+                "name": "Kitchen Light",
+                "driver": "tcp",
+                "aid": 1,
+                "powerIid": 51
             }
         })
 
