@@ -6,6 +6,7 @@ import "." as SettingsPrivate
 Scope {
     id: root
     property alias visible: settingsWindow.visible
+    property alias currentTab: content.currentTab
 
     function toggle(): void {
         settingsWindow.visible = !settingsWindow.visible

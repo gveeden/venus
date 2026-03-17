@@ -1,12 +1,14 @@
 {
   "widgetOrder": [
-    "tray",
     "sound",
-    "home",
     "bluetooth",
     "network",
     "memory",
     "battery",
     "clock"
+  ],
+  "hiddenWidgets": [
+    "tray",
+    "home"
   ]
 }

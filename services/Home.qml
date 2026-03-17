@@ -22,6 +22,10 @@ Singleton {
     property bool livingRoomLoading: false
 
     property bool kitchenOn: false
+    property int kitchenBrightness: 100
+    property int kitchenHue: 0
+    property int kitchenSaturation: 0
+    readonly property string kitchenColor: Qt.hsva(kitchenHue/360, kitchenSaturation/100, 1.0, 1.0).toString()
     property bool kitchenLoading: false
 
     readonly property bool hasActiveLights: headboardOn || entranceOn || livingRoomOn || kitchenOn
@@ -72,6 +76,27 @@ Singleton {
     function toggleKitchen() {
         kitchenOn = !kitchenOn; // Optimistic update
         setCharacteristic(HomeConfig.devices.kitchen.id, HomeConfig.devices.kitchen.aid, HomeConfig.devices.kitchen.powerIid, kitchenOn);
+    }
+
+    function setKitchenBrightness(value) {
+        kitchenBrightness = value; // Optimistic update
+        setCharacteristic(HomeConfig.devices.kitchen.id, HomeConfig.devices.kitchen.aid, HomeConfig.devices.kitchen.brightnessIid, value);
+    }
+
+    function setKitchenColor(value) {
+        const c = Qt.color(value);
+        let hue = Math.round(c.hsvHue * 360);
+        if (hue < 0) hue = 0;
+        let saturation = Math.round(c.hsvSaturation * 100);
+        if (c.hsvSaturation === 0) {
+            hue = 0;
+            saturation = 0;
+        }
+        // Optimistic update
+        kitchenHue = hue;
+        kitchenSaturation = saturation;
+        setCharacteristic(HomeConfig.devices.kitchen.id, HomeConfig.devices.kitchen.aid, HomeConfig.devices.kitchen.colorIid, hue);
+        setCharacteristic(HomeConfig.devices.kitchen.id, HomeConfig.devices.kitchen.aid, 54, saturation);
     }
 
     function setCharacteristic(deviceId, aid, iid, value) {

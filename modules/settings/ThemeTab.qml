@@ -28,8 +28,7 @@ ScrollView {
         // Find all ColorPicker children and close their popups
         var pickers = [backgroundPicker, surfacePicker, primaryPicker, secondaryPicker,
                        textPicker, textSecondaryPicker, textTertiaryPicker, borderPicker,
-                       hoverPicker, surfaceHighlightPicker, primaryContainerPicker, secondaryContainerPicker,
-                       buttonBackgroundPicker, buttonTextPicker, buttonBorderPicker]
+                       hoverPicker, surfaceHighlightPicker, primaryContainerPicker, secondaryContainerPicker]
         for (var i = 0; i < pickers.length; i++) {
             if (pickers[i] && pickers[i].closePopup) {
                 pickers[i].closePopup()

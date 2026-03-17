@@ -32,6 +32,7 @@ Scope {
             color: Appearance.colors.background
 
             BarPrivate.Bar {
+                anchors.fill: parent
                 bluetoothModule: root.bluetoothModule
                 networksModule: root.networksModule
                 batteryModule: root.batteryModule

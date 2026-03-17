@@ -39,15 +39,20 @@ Singleton {
                 root._topAppsOutput += text + "\n";
             }
         }
-        onExited: (code) => {
+        onExited: code => {
             const lines = root._topAppsOutput.trim().split("\n");
             const apps = [];
             for (let line of lines) {
                 const trimmed = line.trim();
-                if (!trimmed) continue;
+                if (!trimmed)
+                    continue;
                 const parts = trimmed.split(/\s+/);
-                if (parts.length < 2) continue;
-                apps.push({ mem: parts[0] + "%", name: parts.slice(1).join(" ") });
+                if (parts.length < 2)
+                    continue;
+                apps.push({
+                    mem: parts[0] + "%",
+                    name: parts.slice(1).join(" ")
+                });
             }
             root.topApps = apps;
             root._topAppsOutput = "";
@@ -55,14 +60,14 @@ Singleton {
     }
 
     function _formatBytes(kb: real): string {
-        let bytes = kb * 1024
+        let bytes = kb * 1024;
         if (bytes >= 1073741824)
-            return (bytes / 1073741824).toFixed(1) + " GB"
+            return (bytes / 1073741824).toFixed(1) + " GB";
         if (bytes >= 1048576)
-            return (bytes / 1048576).toFixed(1) + " MB"
+            return (bytes / 1048576).toFixed(1) + " MB";
         if (bytes >= 1024)
-            return Math.round(bytes / 1024) + " KB"
-        return Math.round(bytes) + " B"
+            return Math.round(bytes / 1024) + " KB";
+        return Math.round(bytes) + " B";
     }
 
     Process {
@@ -71,47 +76,53 @@ Singleton {
         running: false
 
         stdout: SplitParser {
-            onRead: function(data) { root._memInfoOutput += data + "\n" }
+            onRead: function (data) {
+                root._memInfoOutput += data + "\n";
+            }
         }
 
-        onExited: function(exitCode, exitStatus) {
-            root._parseMemInfo(root._memInfoOutput)
-            root._memInfoOutput = ""
+        onExited: function (exitCode, exitStatus) {
+            root._parseMemInfo(root._memInfoOutput);
+            root._memInfoOutput = "";
         }
     }
 
     property string _memInfoOutput: ""
 
     function _parseMemInfo(text: string): void {
-        const lines = text.split("\n")
-        let total = 0
-        let available = 0
-        let swapTotal = 0
-        let swapFree = 0
+        const lines = text.split("\n");
+        let total = 0;
+        let available = 0;
+        let swapTotal = 0;
+        let swapFree = 0;
 
         for (let i = 0; i < lines.length; i++) {
-            const line = lines[i]
+            const line = lines[i];
             if (line.startsWith("MemTotal:")) {
-                let match = line.match(/\d+/)
-                if (match) total = parseInt(match[0])
+                let match = line.match(/\d+/);
+                if (match)
+                    total = parseInt(match[0]);
             } else if (line.startsWith("MemAvailable:")) {
-                let match = line.match(/\d+/)
-                if (match) available = parseInt(match[0])
+                let match = line.match(/\d+/);
+                if (match)
+                    available = parseInt(match[0]);
             } else if (line.startsWith("SwapTotal:")) {
-                let match = line.match(/\d+/)
-                if (match) swapTotal = parseInt(match[0])
+                let match = line.match(/\d+/);
+                if (match)
+                    swapTotal = parseInt(match[0]);
             } else if (line.startsWith("SwapFree:")) {
-                let match = line.match(/\d+/)
-                if (match) swapFree = parseInt(match[0])
+                let match = line.match(/\d+/);
+                if (match)
+                    swapFree = parseInt(match[0]);
             }
         }
 
         if (total > 0) {
-            _totalMemory = total
-            _availableMemory = available
-            _usedMemory = total - available
-            _swapTotal = swapTotal
-            _swapFree = swapFree
+            _totalMemory = total;
+            _availableMemory = available;
+            _usedMemory = total - available;
+            _swapTotal = swapTotal;
+            _swapFree = swapFree;
         }
     }
 
@@ -121,9 +132,9 @@ Singleton {
         running: true
         triggeredOnStart: true
         onTriggered: {
-            root._memInfoOutput = ""
-            proc.running = true
-            topProc.running = true
+            root._memInfoOutput = "";
+            proc.running = true;
+            topProc.running = true;
         }
     }
 }

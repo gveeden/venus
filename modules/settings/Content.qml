@@ -57,6 +57,29 @@ Rectangle {
                         onClicked: root.currentTab = "theme"
                     }
                 }
+
+                // Tab: Bar
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: SettingsConfig.tabHeight
+                    radius: 6
+                    color: root.currentTab === "bar" ? Appearance.colors.surfaceHighlight : "transparent"
+
+                    Text {
+                        text: "Bar Layout"
+                        color: root.currentTab === "bar" ? Appearance.colors.primary : Appearance.colors.text
+                        font.pixelSize: 14
+                        font.weight: root.currentTab === "bar" ? Font.Medium : Font.Normal
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: 12
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: root.currentTab = "bar"
+                    }
+                }
             }
             Rectangle {
                 anchors.right: parent.right
@@ -140,6 +163,13 @@ Rectangle {
                         anchors.fill: parent
                         anchors.margins: 20
                         visible: root.currentTab === "theme"
+                    }
+
+                    BarSettingsTab {
+                        id: barTab
+                        anchors.fill: parent
+                        anchors.margins: 20
+                        visible: root.currentTab === "bar"
                     }
                 }
             }

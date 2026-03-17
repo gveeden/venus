@@ -14,6 +14,8 @@ Item {
     signal popupClosed()
     signal detailVisibleChanged(bool visible)
 
+    property string selectedLight: "headboard"
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: Appearance.padding.large
@@ -34,7 +36,7 @@ Item {
             spacing: Appearance.spacing.medium
 
             HomeTile {
-                icon: "󱠄"
+                icon: "󰛨"
                 title: "Headboard"
                 subtitle: Home.headboardOn ? (Home.headboardBrightness + "%") : "Off"
                 isOn: Home.headboardOn
@@ -42,11 +44,14 @@ Item {
                 lightColor: Home.headboardColor
                 brightness: Home.headboardBrightness
                 onClicked: Home.toggleHeadboard()
-                onLongPressed: lightDetail.visible = true
+                onLongPressed: {
+                    root.selectedLight = "headboard"
+                    lightDetail.visible = true
+                }
             }
 
             HomeTile {
-                icon: "󱠄"
+                icon: "󰛨"
                 title: "Entrance"
                 subtitle: Home.entranceOn ? "On" : "Off"
                 isOn: Home.entranceOn
@@ -55,7 +60,7 @@ Item {
             }
 
             HomeTile {
-                icon: "󱠄"
+                icon: "󰛨"
                 title: "Living Room"
                 subtitle: Home.livingRoomOn ? "On" : "Off"
                 isOn: Home.livingRoomOn
@@ -64,12 +69,18 @@ Item {
             }
 
             HomeTile {
-                icon: "󱠄"
+                icon: "󰛨"
                 title: "Kitchen"
-                subtitle: Home.kitchenOn ? "On" : "Off"
+                subtitle: Home.kitchenOn ? (Home.kitchenBrightness + "%") : "Off"
                 isOn: Home.kitchenOn
                 isLoading: Home.kitchenLoading
+                lightColor: Home.kitchenColor
+                brightness: Home.kitchenBrightness
                 onClicked: Home.toggleKitchen()
+                onLongPressed: {
+                    root.selectedLight = "kitchen"
+                    lightDetail.visible = true
+                }
             }
         }
         
@@ -80,14 +91,23 @@ Item {
         id: lightDetail
         anchors.fill: parent
         visible: false
-        title: "Headboard Light"
-        isOn: Home.headboardOn
-        brightness: Home.headboardBrightness
-        lightColor: Home.headboardColor
+        title: selectedLight === "headboard" ? "Headboard Light" : "Kitchen Light"
+        isOn: selectedLight === "headboard" ? Home.headboardOn : Home.kitchenOn
+        brightness: selectedLight === "headboard" ? Home.headboardBrightness : Home.kitchenBrightness
+        lightColor: selectedLight === "headboard" ? Home.headboardColor : Home.kitchenColor
         onClose: visible = false
-        onPowerToggled: Home.toggleHeadboard()
-        onBrightnessRequested: value => Home.setHeadboardBrightness(value)
-        onColorRequested: value => Home.setHeadboardColor(value)
+        onPowerToggled: {
+            if (selectedLight === "headboard") Home.toggleHeadboard()
+            else Home.toggleKitchen()
+        }
+        onBrightnessRequested: value => {
+            if (selectedLight === "headboard") Home.setHeadboardBrightness(value)
+            else Home.setKitchenBrightness(value)
+        }
+        onColorRequested: value => {
+            if (selectedLight === "headboard") Home.setHeadboardColor(value)
+            else Home.setKitchenColor(value)
+        }
         
         // Handle popup state to inhibit auto-close
         onPopupOpened: root.popupOpened()

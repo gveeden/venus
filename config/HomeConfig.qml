@@ -32,7 +32,9 @@ QtObject {
                 "name": "Kitchen Light",
                 "driver": "tcp",
                 "aid": 1,
-                "powerIid": 51
+                "powerIid": 51,
+                "brightnessIid": 52,
+                "colorIid": 53
             }
         })
 
