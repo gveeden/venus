@@ -12,10 +12,44 @@ Singleton {
     property bool isMuted: false
     property string icon: isMuted ? "󰖁" : volume > 70 ? "󰕾" : volume > 30 ? "󰖀" : "󰕿"
 
+    property int sourceVolume: 0
+    property bool isSourceMuted: false
+    property string sourceIcon: isSourceMuted ? "󰍭" : "󰍬"
+
     property var sinks: []
     property var sources: []
     property string defaultSink: ""
     property string defaultSource: ""
+
+    onDefaultSinkChanged: _syncSink()
+    onSinksChanged: _syncSink()
+    onDefaultSourceChanged: _syncSource()
+    onSourcesChanged: _syncSource()
+
+    function _syncSink() {
+        for (let sink of sinks) {
+            if (sink.name === defaultSink) {
+                if (sink.volume !== root.volume || sink.isMuted !== root.isMuted) {
+                    root.volume = sink.volume
+                    root.isMuted = sink.isMuted
+                    root.volumeChangedSignal(root.volume, root.isMuted)
+                }
+                return
+            }
+        }
+    }
+
+    function _syncSource() {
+        for (let source of sources) {
+            if (source.name === defaultSource) {
+                if (source.volume !== root.sourceVolume || source.isMuted !== root.isSourceMuted) {
+                    root.sourceVolume = source.volume
+                    root.isSourceMuted = source.isMuted
+                }
+                return
+            }
+        }
+    }
 
     signal volumeChangedSignal(int newVolume, bool muted)
     signal devicesChanged()
@@ -118,8 +152,11 @@ Singleton {
                     let descMatch = line.match(/^\s+Description:\s+(.+)$/)
                     if (descMatch) { cur.description = descMatch[1].trim(); continue }
 
-                    let volMatch = line.match(/Volume: front-left: \d+ \/\s*(\d+)%/)
-                    if (volMatch) { cur.volume = parseInt(volMatch[1]); continue }
+                    let volMatch = line.match(/^\tVolume:.*? (\d+)%/)
+                    if (volMatch) {
+                        cur.volume = parseInt(volMatch[1])
+                        continue
+                    }
 
                     let muteMatch = line.match(/Mute:\s*(yes|no)/)
                     if (muteMatch) { cur.isMuted = muteMatch[1] === "yes"; continue }
@@ -128,17 +165,6 @@ Singleton {
 
                 root.sinks = newSinks
                 root.devicesChanged()
-
-                for (let sink of newSinks) {
-                    if (sink.name === root.defaultSink) {
-                        if (sink.volume !== root.volume || sink.isMuted !== root.isMuted) {
-                            root.volume = sink.volume
-                            root.isMuted = sink.isMuted
-                            root.volumeChangedSignal(root.volume, root.isMuted)
-                        }
-                        break
-                    }
-                }
             }
         }
     }
@@ -160,18 +186,28 @@ Singleton {
                     if (nameMatch) {
                         if (cur && !cur.name.endsWith('.monitor'))
                             newSources.push(cur)
-                        cur = { name: nameMatch[1].trim(), description: nameMatch[1].trim() }
+                        cur = { name: nameMatch[1].trim(), description: nameMatch[1].trim(), volume: 0, isMuted: false }
                         continue
                     }
                     if (!cur) continue
 
                     let descMatch = line.match(/^\s+Description:\s+(.+)$/)
                     if (descMatch) { cur.description = descMatch[1].trim(); continue }
+
+                    let volMatch = line.match(/^\tVolume:.*? (\d+)%/)
+                    if (volMatch) {
+                        cur.volume = parseInt(volMatch[1])
+                        continue
+                    }
+
+                    let muteMatch = line.match(/Mute:\s*(yes|no)/)
+                    if (muteMatch) { cur.isMuted = muteMatch[1] === "yes"; continue }
                 }
                 if (cur && !cur.name.endsWith('.monitor'))
                     newSources.push(cur)
 
                 root.sources = newSources
+                root.devicesChanged()
             }
         }
     }
@@ -207,6 +243,11 @@ Singleton {
         running: false
     }
 
+    Process {
+        id: setSourceVolumeProcess
+        running: false
+    }
+
     function setVolume(pct: int): void {
         setVolumeProcess.command = ["pactl", "set-sink-volume", root.defaultSink, pct + "%"]
         setVolumeProcess.running = true
@@ -215,6 +256,16 @@ Singleton {
     function toggleMute(): void {
         setVolumeProcess.command = ["pactl", "set-sink-mute", root.defaultSink, "toggle"]
         setVolumeProcess.running = true
+    }
+
+    function setSourceVolume(pct: int): void {
+        setSourceVolumeProcess.command = ["pactl", "set-source-volume", root.defaultSource, pct + "%"]
+        setSourceVolumeProcess.running = true
+    }
+
+    function toggleSourceMute(): void {
+        setSourceVolumeProcess.command = ["pactl", "set-source-mute", root.defaultSource, "toggle"]
+        setSourceVolumeProcess.running = true
     }
 
     // --- Bluetooth auto-switch ---

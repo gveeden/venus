@@ -16,72 +16,165 @@ ColumnLayout {
         font.pixelSize: Appearance.font.xlarge
     }
 
-    // Volume row
-    RowLayout {
+    // Volume row (Output)
+    ColumnLayout {
         Layout.fillWidth: true
-        spacing: Appearance.spacing.small
+        spacing: Appearance.spacing.tiny
 
-        // Mute toggle button
-        Rectangle {
-            width: 28
-            height: 28
-            radius: Appearance.rounding.small
-            color: muteArea.containsMouse ? Appearance.colors.hover : "transparent"
-
-            Text {
-                anchors.centerIn: parent
-                text: Audio.isMuted ? "󰝟" : Audio.volume > 50 ? "󰕾" : Audio.volume > 0 ? "󰖀" : "󰕿"
-                color: Audio.isMuted ? Appearance.colors.secondary : Appearance.colors.text
-                font.family: Appearance.font.family
-                font.pixelSize: Appearance.font.large
-            }
-
-            MouseArea {
-                id: muteArea
-                anchors.fill: parent
-                hoverEnabled: true
-                onClicked: Audio.toggleMute()
-            }
-        }
-
-        // Volume slider track
-        Rectangle {
-            id: sliderTrack
-            Layout.fillWidth: true
-            height: 6
-            radius: 3
-            color: Appearance.colors.surface
-
-            // Filled portion
-            Rectangle {
-                width: parent.width * Math.min(Audio.volume, 100) / 100
-                height: parent.height
-                radius: parent.radius
-                color: Audio.isMuted ? Appearance.colors.textTertiary : Appearance.colors.primary
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                // Extend hit area above/below the thin track for easier grab
-                anchors.topMargin: -8
-                anchors.bottomMargin: -8
-                hoverEnabled: true
-                onPressed: mouse => Audio.setVolume(Math.round(mouse.x / width * 100))
-                onPositionChanged: mouse => {
-                    if (pressed)
-                        Audio.setVolume(Math.max(0, Math.min(100, Math.round(mouse.x / width * 100))));
-                }
-            }
-        }
-
-        // Volume label
         Text {
-            text: Audio.isMuted ? "Muted" : Audio.volume + "%"
+            text: "Output Volume"
             color: Appearance.colors.textSecondary
             font.pixelSize: Appearance.font.small
             font.family: Appearance.font.family
-            horizontalAlignment: Text.AlignRight
-            Layout.minimumWidth: 40
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Appearance.spacing.small
+
+            // Mute toggle button
+            Rectangle {
+                width: 28
+                height: 28
+                radius: Appearance.rounding.small
+                color: muteArea.containsMouse ? Appearance.colors.hover : "transparent"
+
+                Text {
+                    anchors.centerIn: parent
+                    text: Audio.isMuted ? "󰝟" : Audio.volume > 50 ? "󰕾" : Audio.volume > 0 ? "󰖀" : "󰕿"
+                    color: Audio.isMuted ? Appearance.colors.secondary : Appearance.colors.text
+                    font.family: Appearance.font.family
+                    font.pixelSize: Appearance.font.large
+                }
+
+                MouseArea {
+                    id: muteArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: Audio.toggleMute()
+                }
+            }
+
+            // Volume slider track
+            Rectangle {
+                id: sliderTrack
+                Layout.fillWidth: true
+                height: 6
+                radius: 3
+                color: Appearance.colors.surface
+
+                // Filled portion
+                Rectangle {
+                    width: parent.width * Math.min(Audio.volume, 100) / 100
+                    height: parent.height
+                    radius: parent.radius
+                    color: Audio.isMuted ? Appearance.colors.textTertiary : Appearance.colors.primary
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    // Extend hit area above/below the thin track for easier grab
+                    anchors.topMargin: -8
+                    anchors.bottomMargin: -8
+                    hoverEnabled: true
+                    onPressed: mouse => Audio.setVolume(Math.round(mouse.x / width * 100))
+                    onPositionChanged: mouse => {
+                        if (pressed)
+                            Audio.setVolume(Math.max(0, Math.min(100, Math.round(mouse.x / width * 100))));
+                    }
+                }
+            }
+
+            // Volume label
+            Text {
+                text: Audio.isMuted ? "Muted" : Audio.volume + "%"
+                color: Appearance.colors.textSecondary
+                font.pixelSize: Appearance.font.small
+                font.family: Appearance.font.family
+                horizontalAlignment: Text.AlignRight
+                Layout.minimumWidth: 40
+            }
+        }
+    }
+
+    // Input (Mic) row
+    ColumnLayout {
+        Layout.fillWidth: true
+        spacing: Appearance.spacing.tiny
+
+        Text {
+            text: "Input Gain"
+            color: Appearance.colors.textSecondary
+            font.pixelSize: Appearance.font.small
+            font.family: Appearance.font.family
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Appearance.spacing.small
+
+            // Mic Mute toggle button
+            Rectangle {
+                width: 28
+                height: 28
+                radius: Appearance.rounding.small
+                color: micMuteArea.containsMouse ? Appearance.colors.hover : "transparent"
+
+                Text {
+                    anchors.centerIn: parent
+                    text: Audio.isSourceMuted ? "󰍭" : "󰍬"
+                    color: Audio.isSourceMuted ? Appearance.colors.secondary : Appearance.colors.text
+                    font.family: Appearance.font.family
+                    font.pixelSize: Appearance.font.large
+                }
+
+                MouseArea {
+                    id: micMuteArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: Audio.toggleSourceMute()
+                }
+            }
+
+            // Mic Volume slider track (up to 150% for gain control)
+            Rectangle {
+                id: micSliderTrack
+                Layout.fillWidth: true
+                height: 6
+                radius: 3
+                color: Appearance.colors.surface
+
+                // Filled portion
+                Rectangle {
+                    width: parent.width * Math.min(Audio.sourceVolume, 150) / 150
+                    height: parent.height
+                    radius: parent.radius
+                    color: Audio.isSourceMuted ? Appearance.colors.textTertiary : Appearance.colors.primary
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    // Extend hit area above/below the thin track for easier grab
+                    anchors.topMargin: -8
+                    anchors.bottomMargin: -8
+                    hoverEnabled: true
+                    onPressed: mouse => Audio.setSourceVolume(Math.round(mouse.x / width * 150))
+                    onPositionChanged: mouse => {
+                        if (pressed)
+                            Audio.setSourceVolume(Math.max(0, Math.min(150, Math.round(mouse.x / width * 150))));
+                    }
+                }
+            }
+
+            // Mic Volume label
+            Text {
+                text: Audio.isSourceMuted ? "Muted" : Audio.sourceVolume + "%"
+                color: Appearance.colors.textSecondary
+                font.pixelSize: Appearance.font.small
+                font.family: Appearance.font.family
+                horizontalAlignment: Text.AlignRight
+                Layout.minimumWidth: 40
+            }
         }
     }
 
