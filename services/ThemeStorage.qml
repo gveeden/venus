@@ -45,7 +45,7 @@ Item {
 
     FileView {
         id: fileView
-        path: Quickshell.configDir + "/theme.json"
+        path: Quickshell.shellDir + "/theme.json"
 
         onLoaded: {
             console.log("ThemeStorage: File loaded, attempting to parse...");

@@ -15,6 +15,7 @@ import "./modules/osd" as OsdModule
 import "./modules/sound" as SoundModule
 import "./modules/home" as HomeModule
 import "./modules/memory" as MemoryModule
+import "./modules/weather" as WeatherModule
 import "./services"
 
 ShellRoot {
@@ -32,6 +33,12 @@ ShellRoot {
     // Memory module
     MemoryModule.Wrapper {
         id: memoryModule
+    }
+
+    // Weather module
+    WeatherModule.Wrapper {
+        id: weatherModule
+        visible: false
     }
 
     // Bluetooth module (needs to be before bar)
@@ -75,6 +82,7 @@ ShellRoot {
         soundModule: soundModule
         homeModule: homeModule
         memoryModule: memoryModule
+        weatherModule: weatherModule
     }
 
     Launcher.Wrapper {

@@ -12,6 +12,7 @@ Scope {
     property var soundModule
     property var homeModule
     property var memoryModule
+    property var weatherModule
 
     Variants {
         model: Quickshell.screens
@@ -20,8 +21,7 @@ Scope {
             id: barWindow
             required property var modelData
             screen: modelData
-            visible: true
-
+            visible: !!modelData
             anchors {
                 top: true
                 left: true
@@ -40,6 +40,7 @@ Scope {
                 soundModule: root.soundModule
                 homeModule: root.homeModule
                 memoryModule: root.memoryModule
+                weatherModule: root.weatherModule
                 trayWindow: barWindow
             }
         }

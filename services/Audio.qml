@@ -30,6 +30,11 @@ Singleton {
         for (let sink of sinks) {
             if (sink.name === defaultSink) {
                 if (sink.volume !== root.volume || sink.isMuted !== root.isMuted) {
+                    // Automatically unmute if the volume is changed externally while muted
+                    if (sink.volume !== root.volume && root.isMuted) {
+                        unmuteSinkProcess.command = ["pactl", "set-sink-mute", root.defaultSink, "0"]
+                        unmuteSinkProcess.running = true
+                    }
                     root.volume = sink.volume
                     root.isMuted = sink.isMuted
                     root.volumeChangedSignal(root.volume, root.isMuted)
@@ -43,6 +48,11 @@ Singleton {
         for (let source of sources) {
             if (source.name === defaultSource) {
                 if (source.volume !== root.sourceVolume || source.isMuted !== root.isSourceMuted) {
+                    // Automatically unmute if the volume is changed externally while muted
+                    if (source.volume !== root.sourceVolume && root.isSourceMuted) {
+                        unmuteSourceProcess.command = ["pactl", "set-source-mute", root.defaultSource, "0"]
+                        unmuteSourceProcess.running = true
+                    }
                     root.sourceVolume = source.volume
                     root.isSourceMuted = source.isMuted
                 }
@@ -244,11 +254,25 @@ Singleton {
     }
 
     Process {
+        id: unmuteSinkProcess
+        running: false
+    }
+
+    Process {
         id: setSourceVolumeProcess
         running: false
     }
 
+    Process {
+        id: unmuteSourceProcess
+        running: false
+    }
+
     function setVolume(pct: int): void {
+        if (root.isMuted) {
+            unmuteSinkProcess.command = ["pactl", "set-sink-mute", root.defaultSink, "0"]
+            unmuteSinkProcess.running = true
+        }
         setVolumeProcess.command = ["pactl", "set-sink-volume", root.defaultSink, pct + "%"]
         setVolumeProcess.running = true
     }
@@ -259,6 +283,10 @@ Singleton {
     }
 
     function setSourceVolume(pct: int): void {
+        if (root.isSourceMuted) {
+            unmuteSourceProcess.command = ["pactl", "set-source-mute", root.defaultSource, "0"]
+            unmuteSourceProcess.running = true
+        }
         setSourceVolumeProcess.command = ["pactl", "set-source-volume", root.defaultSource, pct + "%"]
         setSourceVolumeProcess.running = true
     }

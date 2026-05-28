@@ -2,23 +2,64 @@ pragma Singleton
 
 import Quickshell
 import Quickshell.Bluetooth
+import Quickshell.Io
 import QtQuick
 
 Singleton {
-    readonly property bool ready: Bluetooth.defaultAdapter !== null
-    readonly property bool enabled: Bluetooth.defaultAdapter?.enabled ?? false
-    readonly property bool scanning: Bluetooth.defaultAdapter?.discovering ?? false
+    id: root
+    
+    property var defaultAdapter: Bluetooth.defaultAdapter
+    
+    property bool realEnabled: defaultAdapter ? defaultAdapter.enabled : false
+
+    // Polling fallback to ensure status is accurate after bluez restarts
+    Process {
+        id: btCheckProcess
+        command: ["sh", "-c", "bluetoothctl show | grep -q 'Powered: yes' && echo 'ON' || echo 'OFF'"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.realEnabled = text.trim() === "ON";
+            }
+        }
+    }
+
+    Process {
+        id: btToggleProcess
+        property bool targetState: false
+        command: ["bluetoothctl", "power", targetState ? "on" : "off"]
+    }
+
+    Timer {
+        interval: 2000
+        running: true
+        repeat: true
+        onTriggered: btCheckProcess.running = true
+    }
+
+    readonly property bool ready: defaultAdapter !== null
+    readonly property bool enabled: realEnabled
+    readonly property bool scanning: defaultAdapter ? defaultAdapter.discovering : false
     readonly property string status: enabled ? "On" : "Off"
     readonly property var devices: Bluetooth.devices
     readonly property var adapters: Bluetooth.adapters
 
-    property var defaultAdapter: Bluetooth.defaultAdapter
-
     function toggle(): void {
+        const targetState = !enabled;
+        
+        // Try the DBus adapter first
         const adapter = Bluetooth.defaultAdapter;
         if (adapter) {
-            adapter.enabled = !adapter.enabled;
+            adapter.enabled = targetState;
         }
+        
+        // Also enforce via bluetoothctl as a fallback
+        btToggleProcess.targetState = targetState;
+        btToggleProcess.running = true;
+        
+        // Optimistically update
+        realEnabled = targetState;
+        btCheckProcess.running = true;
     }
 
     function toggleScanning(): void {

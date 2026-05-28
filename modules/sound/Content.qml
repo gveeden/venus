@@ -77,6 +77,7 @@ ColumnLayout {
                     anchors.topMargin: -8
                     anchors.bottomMargin: -8
                     hoverEnabled: true
+                    preventStealing: true
                     onPressed: mouse => Audio.setVolume(Math.round(mouse.x / width * 100))
                     onPositionChanged: mouse => {
                         if (pressed)

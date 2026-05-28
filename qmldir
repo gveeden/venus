@@ -11,6 +11,7 @@ singleton NotificationConfig config/NotificationConfig.qml
 singleton SettingsConfig config/SettingsConfig.qml
 singleton SoundConfig config/SoundConfig.qml
 singleton HomeConfig config/HomeConfig.qml
+singleton WConfig config/WConfig.qml
 
 singleton Time services/Time.qml
 singleton Bluetooth services/Bluetooth.qml
@@ -21,6 +22,8 @@ singleton BluetoothStore services/BluetoothStore.qml
 singleton NetworkSpeed services/NetworkSpeed.qml
 singleton Home services/Home.qml
 singleton Memory services/Memory.qml
+singleton WService services/WService.qml
+
 
 ThemeStorage services/ThemeStorage.qml
 ColorPickerPopup components/controls/ColorPickerPopup.qml

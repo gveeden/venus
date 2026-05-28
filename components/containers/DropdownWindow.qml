@@ -48,7 +48,7 @@ PanelWindow {
     }
 
     implicitWidth: root.windowWidth
-    implicitHeight: root.windowHeight
+    implicitHeight: root.windowHeight > 0 ? root.windowHeight : contentLoader.item ? contentLoader.item.implicitHeight + (root.yMargin * 2) : 0
     color: "transparent"
 
     // HoverHandler to detect hover over window (doesn't block child events)

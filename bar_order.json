@@ -1,10 +1,11 @@
 {
   "widgetOrder": [
-    "sound",
+    "battery",
     "bluetooth",
+    "sound",
     "network",
     "memory",
-    "battery",
+    "weather",
     "clock"
   ],
   "hiddenWidgets": [

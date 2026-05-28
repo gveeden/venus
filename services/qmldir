@@ -1,5 +1,6 @@
 module services
 
+singleton WService WService.qml
 singleton Time Time.qml
 singleton Bluetooth Bluetooth.qml
 singleton Notifs Notifs.qml

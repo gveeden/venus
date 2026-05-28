@@ -8,7 +8,7 @@ QtObject {
     readonly property int margins: 10
     readonly property int fontSize: 14
 
-    property var widgetOrder: ["tray", "memory", "network", "bluetooth", "sound", "home", "battery", "clock"]
+    property var widgetOrder: ["tray", "memory", "weather", "network", "bluetooth", "sound", "home", "battery", "clock"]
     property var hiddenWidgets: []
-    readonly property var allWidgets: ["tray", "memory", "network", "bluetooth", "sound", "home", "battery", "clock"]
+    readonly property var allWidgets: ["tray", "memory", "weather", "network", "bluetooth", "sound", "home", "battery", "clock"]
 }

@@ -1,19 +1,5 @@
 [
   {
-    "address": "14:C2:13:EE:D2:FB",
-    "name": "Gerald Trackpad",
-    "icon": "input-tablet",
-    "paired": true,
-    "bonded": true
-  },
-  {
-    "address": "08:95:42:F4:1E:02",
-    "name": "Gerald’s Magic Keyboard",
-    "icon": "input-keyboard",
-    "paired": true,
-    "bonded": true
-  },
-  {
     "address": "F8:4E:17:6F:63:23",
     "name": "WH-1000XM4",
     "icon": "audio-headset",
@@ -38,6 +24,20 @@
     "address": "E4:17:D8:B8:4B:B6",
     "name": "Pro Controller",
     "icon": "input-gaming",
+    "paired": true,
+    "bonded": true
+  },
+  {
+    "address": "14:C2:13:EE:D2:FB",
+    "name": "Gerald Trackpad",
+    "icon": "input-tablet",
+    "paired": true,
+    "bonded": true
+  },
+  {
+    "address": "08:95:42:F4:1E:02",
+    "name": "Gerald’s Magic Keyboard",
+    "icon": "input-keyboard",
     "paired": true,
     "bonded": true
   }

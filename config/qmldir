@@ -1,5 +1,6 @@
 module config
 
+singleton WConfig WConfig.qml
 singleton Appearance Appearance.qml
 singleton BarConfig BarConfig.qml
 singleton LauncherConfig LauncherConfig.qml
