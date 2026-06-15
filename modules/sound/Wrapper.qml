@@ -8,6 +8,7 @@ import "." as SoundPrivate
 Scope {
     id: root
     property alias visible: soundWindow.visible
+    property alias targetScreen: soundWindow.targetScreen
     
     function startCloseTimer() {
         soundWindow.startCloseTimer()

@@ -9,55 +9,63 @@ import "." as NotificationsPrivate
 Scope {
     id: root
 
-    PanelWindow {
-        id: notificationArea
+    Variants {
+        model: Quickshell.screens
 
-        anchors {
-            top: true
-            right: true
-        }
+        delegate: Component {
+            PanelWindow {
+                id: notificationArea
+                required property var modelData
+                screen: modelData
 
-        implicitWidth: NotificationConfig.width + NotificationConfig.rightMargin
-        implicitHeight: notificationColumn.height + NotificationConfig.topMargin + 20
+                anchors {
+                    top: true
+                    right: true
+                }
 
-        exclusionMode: ExclusionMode.Ignore
-        visible: notificationRepeater.count > 0
-        color: "transparent"
+                implicitWidth: NotificationConfig.width + NotificationConfig.rightMargin
+                implicitHeight: notificationColumn.height + NotificationConfig.topMargin + 20
 
-        ColumnLayout {
-            id: notificationColumn
-            anchors {
-                top: parent.top
-                topMargin: NotificationConfig.topMargin
-                right: parent.right
-                rightMargin: NotificationConfig.rightMargin
-            }
-            width: NotificationConfig.width
-            spacing: NotificationConfig.notificationSpacing
+                exclusionMode: ExclusionMode.Ignore
+                visible: notificationRepeater.count > 0
+                color: "transparent"
 
-            Repeater {
-                id: notificationRepeater
-                model: Notifs.notifications
-
-                NotificationsPrivate.Content {
-                    notification: modelData
-                    onDismissClicked: {
-                        Notifs.dismiss(modelData);
+                ColumnLayout {
+                    id: notificationColumn
+                    anchors {
+                        top: parent.top
+                        topMargin: NotificationConfig.topMargin
+                        right: parent.right
+                        rightMargin: NotificationConfig.rightMargin
                     }
-                    onActionClicked: {
-                        if (modelData.actions) {
-                            for (let i = 0; i < modelData.actions.length; i++) {
-                                if (modelData.actions[i].identifier === actionId) {
-                                    modelData.actions[i].invoke();
-                                    break;
+                    width: NotificationConfig.width
+                    spacing: NotificationConfig.notificationSpacing
+
+                    Repeater {
+                        id: notificationRepeater
+                        model: Notifs.notifications
+
+                        NotificationsPrivate.Content {
+                            notification: modelData
+                            onDismissClicked: {
+                                Notifs.dismiss(modelData);
+                            }
+                            onActionClicked: {
+                                if (modelData.actions) {
+                                    for (let i = 0; i < modelData.actions.length; i++) {
+                                        if (modelData.actions[i].identifier === actionId) {
+                                            modelData.actions[i].invoke();
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
                 }
             }
         }
     }
+}
 
     Window {
         id: historyWindow

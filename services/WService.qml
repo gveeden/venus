@@ -19,8 +19,16 @@ Singleton {
     // Forecast data
     property var forecast: []
 
+    property string customLocation: ""
+
     function update() {
         console.log("[WService] Updating weather...");
+        let url = "wttr.in";
+        if (root.customLocation !== "") {
+            url += "/" + encodeURIComponent(root.customLocation);
+        }
+        url += "?format=j1";
+        weatherProc.command = ["curl", "-s", url];
         weatherProc.running = true;
     }
 
@@ -89,7 +97,36 @@ Singleton {
         onTriggered: root.update()
     }
     
+    onCustomLocationChanged: {
+        if (customLocation !== "") {
+            saveProc.locToSave = customLocation;
+            saveProc.running = true;
+        }
+    }
+
+    Process {
+        id: saveProc
+        running: false
+        property string locToSave: ""
+        command: ["sh", "-c", "echo '" + locToSave + "' > ~/.config/quickshell/venus/weather_location.txt"]
+    }
+
+    Process {
+        id: loadProc
+        running: false
+        command: ["sh", "-c", "cat ~/.config/quickshell/venus/weather_location.txt 2>/dev/null || true"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (text && text.trim() !== "") {
+                    root.customLocation = text.trim();
+                    root.update();
+                }
+            }
+        }
+    }
+
     Component.onCompleted: {
         console.log("[WService] Service initialized");
+        loadProc.running = true;
     }
 }

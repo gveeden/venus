@@ -42,6 +42,7 @@ Item {
         onClicked: mouse => {
             if (mouse.button === Qt.RightButton) {
                 settingsModule.currentTab = "bar";
+                settingsModule.targetScreen = root.trayWindow.screen;
                 settingsModule.visible = true;
             }
         }
@@ -95,6 +96,7 @@ Item {
         id: networksHoverTimer
         interval: root.hoverDelay
         onTriggered: {
+            networksModule.targetScreen = root.trayWindow.screen;
             networksModule.visible = true;
             networksModule.stopCloseTimer();
         }
@@ -103,6 +105,7 @@ Item {
         id: bluetoothHoverTimer
         interval: root.hoverDelay
         onTriggered: {
+            bluetoothModule.targetScreen = root.trayWindow.screen;
             bluetoothModule.visible = true;
             bluetoothModule.stopCloseTimer();
         }
@@ -111,6 +114,7 @@ Item {
         id: batteryHoverTimer
         interval: root.hoverDelay
         onTriggered: {
+            batteryModule.targetScreen = root.trayWindow.screen;
             batteryModule.visible = true;
             batteryModule.stopCloseTimer();
         }
@@ -119,6 +123,7 @@ Item {
         id: calendarHoverTimer
         interval: root.hoverDelay
         onTriggered: {
+            calendarModule.targetScreen = root.trayWindow.screen;
             calendarModule.visible = true;
             calendarModule.stopCloseTimer();
         }
@@ -127,6 +132,7 @@ Item {
         id: soundHoverTimer
         interval: root.hoverDelay
         onTriggered: {
+            soundModule.targetScreen = root.trayWindow.screen;
             soundModule.visible = true;
             soundModule.stopCloseTimer();
         }
@@ -135,6 +141,7 @@ Item {
         id: homeHoverTimer
         interval: root.hoverDelay
         onTriggered: {
+            homeModule.targetScreen = root.trayWindow.screen;
             homeModule.visible = true;
             homeModule.stopCloseTimer();
         }
@@ -143,6 +150,7 @@ Item {
         id: memoryHoverTimer
         interval: root.hoverDelay
         onTriggered: {
+            memoryModule.targetScreen = root.trayWindow.screen;
             memoryModule.visible = true;
             memoryModule.stopCloseTimer();
         }
@@ -151,6 +159,7 @@ Item {
         id: weatherHoverTimer
         interval: root.hoverDelay
         onTriggered: {
+            weatherModule.targetScreen = root.trayWindow.screen;
             weatherModule.visible = true;
             weatherModule.stopCloseTimer();
         }
@@ -189,7 +198,12 @@ Item {
                 }
                 onClicked: {
                     memoryHoverTimer.stop();
-                    memoryModule.visible = !memoryModule.visible;
+                    if (!memoryModule.visible || memoryModule.targetScreen !== root.trayWindow.screen) {
+                        memoryModule.targetScreen = root.trayWindow.screen;
+                        memoryModule.visible = true;
+                    } else {
+                        memoryModule.visible = false;
+                    }
                 }
             }
         }
@@ -236,7 +250,12 @@ Item {
                 }
                 onClicked: {
                     networksHoverTimer.stop();
-                    networksModule.visible = !networksModule.visible;
+                    if (!networksModule.visible || networksModule.targetScreen !== root.trayWindow.screen) {
+                        networksModule.targetScreen = root.trayWindow.screen;
+                        networksModule.visible = true;
+                    } else {
+                        networksModule.visible = false;
+                    }
                 }
             }
         }
@@ -271,7 +290,12 @@ Item {
                 }
                 onClicked: {
                     bluetoothHoverTimer.stop();
-                    bluetoothModule.visible = !bluetoothModule.visible;
+                    if (!bluetoothModule.visible || bluetoothModule.targetScreen !== root.trayWindow.screen) {
+                        bluetoothModule.targetScreen = root.trayWindow.screen;
+                        bluetoothModule.visible = true;
+                    } else {
+                        bluetoothModule.visible = false;
+                    }
                 }
             }
         }
@@ -308,7 +332,12 @@ Item {
                 }
                 onClicked: {
                     soundHoverTimer.stop();
-                    soundModule.visible = !soundModule.visible;
+                    if (!soundModule.visible || soundModule.targetScreen !== root.trayWindow.screen) {
+                        soundModule.targetScreen = root.trayWindow.screen;
+                        soundModule.visible = true;
+                    } else {
+                        soundModule.visible = false;
+                    }
                 }
             }
         }
@@ -343,7 +372,12 @@ Item {
                 }
                 onClicked: {
                     homeHoverTimer.stop();
-                    homeModule.visible = !homeModule.visible;
+                    if (!homeModule.visible || homeModule.targetScreen !== root.trayWindow.screen) {
+                        homeModule.targetScreen = root.trayWindow.screen;
+                        homeModule.visible = true;
+                    } else {
+                        homeModule.visible = false;
+                    }
                 }
             }
         }
@@ -405,7 +439,12 @@ Item {
                 }
                 onClicked: {
                     batteryHoverTimer.stop();
-                    batteryModule.visible = !batteryModule.visible;
+                    if (!batteryModule.visible || batteryModule.targetScreen !== root.trayWindow.screen) {
+                        batteryModule.targetScreen = root.trayWindow.screen;
+                        batteryModule.visible = true;
+                    } else {
+                        batteryModule.visible = false;
+                    }
                 }
             }
         }
@@ -435,7 +474,12 @@ Item {
                     calendarModule.startCloseTimer();
                 }
                 onClicked: {
-                    calendarModule.visible = !calendarModule.visible;
+                    if (!calendarModule.visible || calendarModule.targetScreen !== root.trayWindow.screen) {
+                        calendarModule.targetScreen = root.trayWindow.screen;
+                        calendarModule.visible = true;
+                    } else {
+                        calendarModule.visible = false;
+                    }
                 }
             }
         }
@@ -470,7 +514,12 @@ Item {
                 }
                 onClicked: {
                     weatherHoverTimer.stop();
-                    weatherModule.visible = !weatherModule.visible;
+                    if (!weatherModule.visible || weatherModule.targetScreen !== root.trayWindow.screen) {
+                        weatherModule.targetScreen = root.trayWindow.screen;
+                        weatherModule.visible = true;
+                    } else {
+                        weatherModule.visible = false;
+                    }
                 }
             }
         }

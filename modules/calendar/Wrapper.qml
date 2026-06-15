@@ -7,6 +7,7 @@ import "." as CalendarPrivate
 Scope {
     id: root
     property alias visible: calendarWindow.visible
+    property alias targetScreen: calendarWindow.targetScreen
 
     // Public functions for timer control
     function startCloseTimer() {

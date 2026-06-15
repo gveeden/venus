@@ -8,6 +8,7 @@ import "." as BatteryPrivate
 Scope {
     id: root
     property alias visible: batteryWindow.visible
+    property alias targetScreen: batteryWindow.targetScreen
 
     // Public functions for timer control
     function startCloseTimer() {

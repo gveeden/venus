@@ -7,6 +7,7 @@ import "." as MemoryPrivate
 Scope {
     id: root
     property alias visible: memoryWindow.visible
+    property alias targetScreen: memoryWindow.targetScreen
 
     function startCloseTimer() {
         memoryWindow.startCloseTimer();

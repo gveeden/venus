@@ -8,6 +8,7 @@ import "." as HomePrivate
 Scope {
     id: root
     property alias visible: homeWindow.visible
+    property alias targetScreen: homeWindow.targetScreen
     
     // Check if any popup is open to prevent auto-closing
     property bool isPopupOpen: false

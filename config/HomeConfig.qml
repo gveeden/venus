@@ -11,7 +11,7 @@ QtObject {
 
     readonly property var devices: ({
             "headboard": {
-                "id": "74:D8:4D:24:D1:9A",
+                "id": "A5:8B:49:25:02:F2",
                 "aid": 1,
                 "powerIid": 51,
                 "brightnessIid": 52,

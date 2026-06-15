@@ -8,6 +8,7 @@ import "." as BluetoothPrivate
 Scope {
     id: root
     property alias visible: bluetoothWindow.visible
+    property alias targetScreen: bluetoothWindow.targetScreen
 
     // Expose bluetooth state (for bar compatibility)
     property bool bluetoothReady: Bluetooth.ready

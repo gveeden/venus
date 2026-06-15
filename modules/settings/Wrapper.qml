@@ -5,75 +5,95 @@ import "." as SettingsPrivate
 
 Scope {
     id: root
-    property alias visible: settingsWindow.visible
-    property alias currentTab: content.currentTab
+    property bool visible: false
+    property string currentTab: "general"
+    property var targetScreen: null
+
+    onVisibleChanged: {
+        if (!visible) {
+            targetScreen = null;
+        }
+    }
 
     function toggle(): void {
-        settingsWindow.visible = !settingsWindow.visible
+        visible = !visible
     }
 
     function close(): void {
-        settingsWindow.visible = false
+        visible = false
     }
 
-    PanelWindow {
-        id: settingsWindow
-        visible: false
+    Variants {
+        model: Quickshell.screens
 
-        anchors {
-            top: true
-            left: true
-            right: true
-            bottom: true
-        }
+        delegate: Component {
+            PanelWindow {
+                id: settingsWindow
+                required property var modelData
+                screen: modelData
+                visible: root.visible && (modelData === root.targetScreen)
 
-        margins {
-            top: Math.round((screen.height - SettingsConfig.windowHeight) / 2)
-            bottom: Math.round((screen.height - SettingsConfig.windowHeight) / 2)
-            left: Math.round((screen.width - SettingsConfig.windowWidth) / 2)
-            right: Math.round((screen.width - SettingsConfig.windowWidth) / 2)
-        }
+                anchors {
+                    top: true
+                    left: true
+                    right: true
+                    bottom: true
+                }
 
-        implicitWidth: SettingsConfig.windowWidth
-        implicitHeight: SettingsConfig.windowHeight
+                margins {
+                    top: screen ? Math.round((screen.height - SettingsConfig.windowHeight) / 2) : 0
+                    bottom: screen ? Math.round((screen.height - SettingsConfig.windowHeight) / 2) : 0
+                    left: screen ? Math.round((screen.width - SettingsConfig.windowWidth) / 2) : 0
+                    right: screen ? Math.round((screen.width - SettingsConfig.windowWidth) / 2) : 0
+                }
 
-        color: "transparent"
+                implicitWidth: SettingsConfig.windowWidth
+                implicitHeight: SettingsConfig.windowHeight
 
-        // Background with radius
-        Rectangle {
-            id: backgroundRect
-            anchors.fill: parent
-            radius: Appearance.window.radius
-            color: Qt.rgba(Appearance.colors.background.r, Appearance.colors.background.g, Appearance.colors.background.b, Appearance.window.opacity)
-        }
+                color: "transparent"
 
-        // Border
-        Rectangle {
-            anchors.fill: parent
-            color: "transparent"
-            border.color: Appearance.colors.windowBorder
-            border.width: Appearance.window.borderThickness
-            radius: Appearance.window.radius
-        }
+                // Background with radius
+                Rectangle {
+                    id: backgroundRect
+                    anchors.fill: parent
+                    radius: Appearance.window.radius
+                    color: Qt.rgba(Appearance.colors.background.r, Appearance.colors.background.g, Appearance.colors.background.b, Appearance.window.opacity)
+                }
 
-        SettingsPrivate.Content {
-            id: content
-            anchors.fill: parent
-            anchors.leftMargin: Appearance.window.borderThickness
-            anchors.rightMargin: Appearance.window.borderThickness
-            anchors.topMargin: Appearance.window.borderThickness
-            anchors.bottomMargin: Appearance.window.borderThickness
-            onCloseClicked: root.close()
-        }
+                // Border
+                Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                    border.color: Appearance.colors.windowBorder
+                    border.width: Appearance.window.borderThickness
+                    radius: Appearance.window.radius
+                }
 
-        // Handle visibility changes
-        onVisibleChanged: {
-            if (!visible && content) {
-                content.closeColorPickers()
+                SettingsPrivate.Content {
+                    id: content
+                    anchors.fill: parent
+                    anchors.leftMargin: Appearance.window.borderThickness
+                    anchors.rightMargin: Appearance.window.borderThickness
+                    anchors.topMargin: Appearance.window.borderThickness
+                    anchors.bottomMargin: Appearance.window.borderThickness
+                    onCloseClicked: root.close()
+                    currentTab: root.currentTab
+                    onCurrentTabChanged: root.currentTab = currentTab
+                }
+
+                // Handle visibility changes
+                onVisibleChanged: {
+                    if (!visible && (modelData === root.targetScreen)) {
+                        root.visible = false;
+                    }
+                    if (!visible && content) {
+                        content.closeColorPickers()
+                    }
+                }
+
+                // Handle escape key at window level
+                Keys.onEscapePressed: root.close()
             }
         }
-
-        // Handle escape key at window level
-        Keys.onEscapePressed: root.close()
     }
 }

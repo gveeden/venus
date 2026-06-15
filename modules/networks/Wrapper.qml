@@ -8,6 +8,7 @@ import "." as NetworksPrivate
 Scope {
     id: root
     property alias visible: networksWindow.visible
+    property alias targetScreen: networksWindow.targetScreen
 
     // Expose network state (for bar compatibility)
     property bool networksReady: Networks.ready

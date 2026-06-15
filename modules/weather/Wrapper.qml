@@ -8,6 +8,7 @@ import "." as WeatherPrivate
 Scope {
     id: root
     property alias visible: weatherWindow.visible
+    property alias targetScreen: weatherWindow.targetScreen
 
     // Public functions for timer control
     function startCloseTimer() {

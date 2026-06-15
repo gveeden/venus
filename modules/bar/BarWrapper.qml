@@ -17,31 +17,33 @@ Scope {
     Variants {
         model: Quickshell.screens
 
-        PanelWindow {
-            id: barWindow
-            required property var modelData
-            screen: modelData
-            visible: !!modelData
-            anchors {
-                top: true
-                left: true
-                right: true
-            }
+        delegate: Component {
+            PanelWindow {
+                id: barWindow
+                required property var modelData
+                screen: modelData
+                visible: !!modelData
+                anchors {
+                    top: true
+                    left: true
+                    right: true
+                }
 
-            implicitHeight: BarConfig.height
-            color: Appearance.colors.background
+                implicitHeight: BarConfig.height
+                color: Appearance.colors.background
 
-            BarPrivate.Bar {
-                anchors.fill: parent
-                bluetoothModule: root.bluetoothModule
-                networksModule: root.networksModule
-                batteryModule: root.batteryModule
-                calendarModule: root.calendarModule
-                soundModule: root.soundModule
-                homeModule: root.homeModule
-                memoryModule: root.memoryModule
-                weatherModule: root.weatherModule
-                trayWindow: barWindow
+                BarPrivate.Bar {
+                    anchors.fill: parent
+                    bluetoothModule: root.bluetoothModule
+                    networksModule: root.networksModule
+                    batteryModule: root.batteryModule
+                    calendarModule: root.calendarModule
+                    soundModule: root.soundModule
+                    homeModule: root.homeModule
+                    memoryModule: root.memoryModule
+                    weatherModule: root.weatherModule
+                    trayWindow: barWindow
+                }
             }
         }
     }
