@@ -20,47 +20,82 @@ ColumnLayout {
     }
 
     Rectangle {
+        id: listContainer
         Layout.fillWidth: true
         Layout.fillHeight: true
         color: Appearance.colors.surface
         radius: Appearance.rounding.medium
 
-        // Use BluetoothStore.mergedDevices so out-of-range paired devices
-        // (loaded from the local JSON) are included alongside live devices.
-        // Also depend on Bluetooth.devices directly so the list re-evaluates
-        // whenever any live device property changes (connect, pair, etc.).
-        property var filteredDevices: {
-            // Explicitly touch Bluetooth.devices to create a reactive dependency
-            // so this re-evaluates on any device-model change.
-            void(Bluetooth.devices)
-            return BluetoothStore.mergedDevices.filter(root.deviceFilter)
+        // Live devices that match the filter
+        readonly property var filteredLiveDevices: {
+            void(BluetoothStore.listUpdateTrigger)
+            void(BluetoothService.scanning)
+            if (!Bluetooth.devices) return []
+            const list = [...Bluetooth.devices.values]
+            return list.filter(function(d) {
+                return !!d && root.deviceFilter(d)
+            })
         }
 
-        ListView {
-            id: deviceList
+        // Offline paired devices that are currently out of BlueZ's D-Bus tree.
+        readonly property var offlineDevices: {
+            void(BluetoothStore.listUpdateTrigger)
+            void(BluetoothService.scanning)
+            if (!Bluetooth.devices) return []
+            const liveAddrs = {}
+            const live = [...Bluetooth.devices.values]
+            for (let i = 0; i < live.length; i++) {
+                if (live[i]) liveAddrs[live[i].address] = true
+            }
+            return BluetoothStore.storedDevices.filter(function(s) {
+                if (!s.paired || liveAddrs[s.address]) return false
+                return root.deviceFilter({
+                    address:   s.address,
+                    name:      s.name,
+                    icon:      s.icon,
+                    paired:    true,
+                    bonded:    s.bonded ?? false,
+                    connected: false,
+                    isOffline: true
+                })
+            })
+        }
+
+        readonly property int totalCount: filteredLiveDevices.length + offlineDevices.length
+
+        Flickable {
             anchors.fill: parent
             anchors.margins: Appearance.spacing.small
             clip: true
-            spacing: Appearance.spacing.small
+            contentWidth: width
+            contentHeight: innerColumn.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
 
-            model: parent.filteredDevices.slice().sort((a, b) => {
-                // Read through getters (which delegate to _live) so sort order
-                // always reflects current connection/pair state.
-                const aC = a.connected ? 1 : 0
-                const bC = b.connected ? 1 : 0
-                const aP = a.paired    ? 1 : 0
-                const bP = b.paired    ? 1 : 0
-                return (bC - aC) || (bP - aP) || (a.name ?? "").localeCompare(b.name ?? "")
-            })
+            Column {
+                id: innerColumn
+                width: parent.width
+                spacing: Appearance.spacing.small
 
-            delegate: Loader {
-                id: loader
-                property var deviceData: modelData
-                width: deviceList.width
-                active: deviceData !== null
+                // ── Live devices ─────────────────────────────────────────────
+                Repeater {
+                    model: listContainer.filteredLiveDevices
 
-                sourceComponent: DeviceItem {
-                    device: loader.deviceData
+                    delegate: DeviceItem {
+                        required property var modelData
+                        width: innerColumn.width
+                        device: modelData
+                    }
+                }
+
+                // ── Offline stored devices ────────────────────────────────────
+                Repeater {
+                    model: listContainer.offlineDevices
+
+                    delegate: DeviceItem {
+                        required property var modelData
+                        width: innerColumn.width
+                        device: modelData  // plain JS record, isOffline: true
+                    }
                 }
             }
         }
@@ -71,7 +106,7 @@ ColumnLayout {
             color: Appearance.colors.textTertiary
             font.pixelSize: Appearance.font.small
             horizontalAlignment: Text.AlignHCenter
-            visible: parent.filteredDevices.length === 0
+            visible: listContainer.totalCount === 0
         }
     }
 }

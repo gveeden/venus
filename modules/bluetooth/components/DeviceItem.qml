@@ -13,25 +13,26 @@ Rectangle {
     property var device
 
     readonly property bool isOffline:   device?.isOffline  ?? false
-    // For live devices, _live is the actual QML BluetoothDevice object so property
-    // signals (onStateChanged, onPairingChanged, etc.) fire correctly.
-    readonly property var  liveDevice:  isOffline ? null : (device?._live ?? device)
+    // For live devices, liveDevice is the actual QML BluetoothDevice object so property
+    // signals and bindings work correctly.
+    readonly property var  liveDevice:  (!isOffline && device && typeof device.connect === "function") ? (device._live ?? device) : null
 
-    readonly property bool isConnected: !isOffline && (liveDevice?.state === BluetoothDeviceState.Connected)
-    readonly property bool isPaired:    !isOffline && (liveDevice?.paired ?? false)
+    // Use the boolean connected property directly
+    readonly property bool isConnected: !isOffline && (liveDevice?.connected ?? false)
+    readonly property bool isPaired:    isOffline ? (device?.paired ?? false) : (liveDevice?.paired ?? false)
     readonly property bool isPairing:   !isOffline && (liveDevice?.pairing ?? false)
 
-    // Busy = any in-flight connection-state transition OR active pairing handshake
+    // Busy = any in-flight connection-state transition OR active pairing handshake.
     readonly property bool isBusy: isPairing
-        || (!isOffline && liveDevice !== null
-            && liveDevice.state !== BluetoothDeviceState.Disconnected
-            && liveDevice.state !== BluetoothDeviceState.Connected)
+        || (!isOffline
+            && liveDevice !== null
+            && !liveDevice.connected
+            && (liveDevice.state ?? 0) !== 0)
 
     // ── Internal state machine ────────────────────────────────────────────────
     // Tracks whether we initiated a pair+connect sequence so we can auto-trust
-    // and auto-connect once pairing completes.  Stored on the address string so
-    // a mergedDevices recompute (which swaps the wrapper object and triggers
-    // onLiveDeviceChanged) does NOT reset the flag mid-pairing.
+    // and auto-connect once pairing completes. Stored on the address string so
+    // a mergedDevices recompute does NOT reset the flag mid-pairing.
     property string _pendingPairAddress: ""
 
     readonly property bool _waitingForPair: _pendingPairAddress !== ""
@@ -43,14 +44,11 @@ Rectangle {
     property int  lastState: -1
 
     onLiveDeviceChanged: {
-        // Only reset connectFailed/lastState — do NOT clear _pendingPairAddress
-        // here, because liveDevice changes every time mergedDevices recomputes.
         connectFailed = false
         lastState = -1
     }
 
     // After pairing: wait for trusted to be confirmed, then connect.
-    // BlueZ needs a moment to settle the D-Bus trust write before Connect() works.
     Timer {
         id: postTrustConnectTimer
         interval: 750
@@ -64,19 +62,18 @@ Rectangle {
             if (dev.paired && dev.trusted) {
                 dev.connect()
             } else {
-                // Trust didn't stick — give up
                 root._pendingPairAddress = ""
             }
         }
     }
 
     // Watch pairing → paired transition, then trust, then connect.
-    // Also handles the already-paired path: ensure trusted before connecting.
     Connections {
         target: root.liveDevice
-        enabled: !root.isOffline
+        enabled: root.liveDevice !== null
 
         function onPairingChanged(): void {
+            BluetoothStore.triggerUpdate()
             if (!root._waitingForPair) return
             const dev = root.liveDevice
             if (!dev) return
@@ -92,6 +89,7 @@ Rectangle {
         }
 
         function onTrustedChanged(): void {
+            BluetoothStore.triggerUpdate()
             if (!root._waitingForPair) return
             const dev = root.liveDevice
             if (!dev) return
@@ -107,6 +105,7 @@ Rectangle {
         }
 
         function onStateChanged(): void {
+            BluetoothStore.triggerUpdate()
             const s = root.liveDevice?.state
             if (s === undefined) return
 
@@ -125,6 +124,14 @@ Rectangle {
                 postTrustConnectTimer.stop()
             }
             root.lastState = s
+        }
+
+        function onConnectedChanged(): void {
+            BluetoothStore.triggerUpdate()
+        }
+
+        function onPairedChanged(): void {
+            BluetoothStore.triggerUpdate()
         }
     }
 
@@ -219,9 +226,9 @@ Rectangle {
                     }
 
                     if (!root.isPaired) {
-                        // New device: pair → trust → connect via signal chain.
+                        // New device: start agent, then pair → trust → connect via signal chain.
                         root._pendingPairAddress = root.liveDevice.address
-                        root.liveDevice.pair()
+                        BluetoothService.startPairingAgent(root.liveDevice)
                     } else if (!root.liveDevice.trusted) {
                         // Paired but not yet trusted: trust first, then connect via onTrustedChanged.
                         root._pendingPairAddress = root.liveDevice.address
@@ -247,8 +254,7 @@ Rectangle {
                     if (!root.device?.address) return
                     root._pendingPairAddress = ""
                     BluetoothStore.forget(root.device.address)
-                    if (!root.isOffline && root.liveDevice)
-                        root.liveDevice.forget()
+                    BluetoothService.forgetDevice(root.device.address)
                 }
             }
         }

@@ -11,10 +11,10 @@ Scope {
     property alias targetScreen: bluetoothWindow.targetScreen
 
     // Expose bluetooth state (for bar compatibility)
-    property bool bluetoothReady: Bluetooth.ready
-    property bool bluetoothEnabled: Bluetooth.enabled
-    property string bluetoothStatus: Bluetooth.status
-    property bool bluetoothScanning: Bluetooth.scanning
+    property bool bluetoothReady: BluetoothService.ready
+    property bool bluetoothEnabled: BluetoothService.enabled
+    property string bluetoothStatus: BluetoothService.status
+    property bool bluetoothScanning: BluetoothService.scanning
 
     // Public functions for timer control
     function startCloseTimer() {

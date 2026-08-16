@@ -14,6 +14,13 @@ Singleton {
     // List of stored device records: { address, name, icon, paired, bonded }
     property var storedDevices: []
 
+    // Trigger to force UI to re-evaluate filtered devices
+    property int listUpdateTrigger: 0
+
+    function triggerUpdate() {
+        listUpdateTrigger++
+    }
+
     // Full merged list: live devices take precedence over stored records.
     // Stored-only devices (out of range) are marked with isOffline: true.
     readonly property var mergedDevices: {
@@ -57,7 +64,7 @@ Singleton {
                 // and sorts always see current values.
                 get paired()    { return d.paired },
                 get bonded()    { return d.bonded },
-                get connected() { return d.connected },
+                get connected() { return d.state === BluetoothDeviceState.Connected },
                 get trusted()   { return d.trusted },
             })
         }
@@ -119,18 +126,42 @@ Singleton {
     }
 
     // Sync live devices into the store when they become paired/bonded.
+    // Also clean up stored devices that are live but no longer paired/bonded.
     // Use a poll timer since Instantiator with UntypedObjectModel isn't supported.
     Timer {
-        interval: 2000
+        interval: 1000
         running: true
         repeat: true
         onTriggered: {
+            if (!Bluetooth.devices) return
             const devs = [...Bluetooth.devices.values]
+            const liveMap = {}
             for (let i = 0; i < devs.length; i++) {
                 const dev = devs[i]
-                if (dev && (dev.paired || dev.bonded))
+                if (!dev) continue
+                liveMap[dev.address] = dev
+                if (dev.paired || dev.bonded)
                     root.remember(dev)
             }
+
+            let changed = false
+            const nextStored = root.storedDevices.filter(function(s) {
+                const liveDev = liveMap[s.address]
+                if (liveDev) {
+                    if (!liveDev.paired && !liveDev.bonded) {
+                        changed = true
+                        return false
+                    }
+                }
+                return true
+            })
+
+            if (changed) {
+                root.storedDevices = nextStored
+                root.save()
+            }
+
+            root.listUpdateTrigger++
         }
     }
 }

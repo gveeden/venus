@@ -2,7 +2,7 @@ module services
 
 singleton WService WService.qml
 singleton Time Time.qml
-singleton Bluetooth Bluetooth.qml
+singleton BluetoothService BluetoothService.qml
 singleton Notifs Notifs.qml
 singleton Networks Networks.qml
 singleton Nmcli Nmcli.qml
